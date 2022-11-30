@@ -1,7 +1,7 @@
 ---
 title: TypeScript基础
 date: 2022-11-27 12:16
-categories: javaScript
+categories: typeScript
 ---
 
 ## TypeScript的含义
