@@ -4,6 +4,10 @@ date: 2022-12-4 12:33
 categories: HTTP协议
 ---
 
+![](http://106.55.171.176:9000/yusen/Snipaste_2022-12-09_10-08-57.png)
+
+<!-- more -->
+
 ### 一、什么是HTTP协议
 
 HTTP是Hyper Text Transport Protocol的缩写，望文知意便是超文本传输协议。
