@@ -4,7 +4,7 @@ date: 2022-12-9 10:12
 categories: git
 ---
 
-![](http://106.55.171.176:9000/yusen/Snipaste_2022-12-09_11-58-19.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=sttch%2F20221209%2F%2Fs3%2Faws4_request&X-Amz-Date=20221209T035852Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=7345a9a9260302b6751d0d8bde690beff8fe10230468a215d2e3a92d144129f1)
+![](http://106.55.171.176:9000/yusen/Snipaste_2022-12-09_11-58-19.png)
 
 <!-- more -->
 
