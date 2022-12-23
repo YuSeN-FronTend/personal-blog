@@ -175,4 +175,80 @@ const person = new Person();
 
 ## 10、组件中data为什么定义成一个函数而不是对象
 
-每个组件都是Vue实例。组件共享data属性，当data的值是同一个引用类型的值是，改变其中一个会影响到其他。
+每个组件都是Vue实例。组件共享data属性，当data的值是同一个引用类型的值是，改变其中一个会影响到其他。从而为了保证数据的独立性，才选择定义成一个函数。
+
+## 11、常见的盒子居中的方法
+
+- 子绝父相方法
+
+  ```html
+  <style>
+      .container{
+          width: 300px;
+          height: 300px;
+          position: relative;
+          background-color: yellowgreen;
+      }
+      .center{
+          width: 100px;
+          height: 100px;
+          background-color: aqua;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          margin-top: -50px;
+          margin-left:-50px;
+      }
+  </style>
+  ```
+
+- transform 可以在未知元素宽高情况下实现居中。
+
+  ```html
+     <style>
+          .container{
+              position: relative;
+          }
+          .conter{
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%,-50%);
+          }
+      </style>
+  ```
+
+- 弹性盒子
+
+  ```html
+   <style>
+          .container{
+           display: flex;
+           justify-content: center;
+           align-items: center;
+          }
+          .conter{
+              
+          }
+      </style>
+  ```
+
+## 12、js数据类型有哪些，区别是什么
+
+- 基本类型：string，number，boolean，null，undefined，symbol，bigInt
+- 引用类型：object，array
+- 基本类型存储在栈中，空间小，操作频繁
+- 引用类型存储在堆中，他的地址在栈中，一般我们访问的就是他的地址
+
+## 13、什么是symbol
+
+是es6引入的新的原始数据类型symbol，表示独一无二的值。
+
+## 14、什么是同源策略
+
+所谓同源策略就是浏览器的一种安全机制，来限制不同源的网站不能通信（域名、协议、端口号相同）
+
+## 15、promise是什么，有什么作用
+
+- promist是一个对象，可以从改变对象获取异步操作信息
+- 它可以解决回调地狱问题，也就是异步深层嵌套问题
