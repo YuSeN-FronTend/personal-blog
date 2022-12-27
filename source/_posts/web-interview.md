@@ -340,7 +340,7 @@ const person = new Person();
 ## 25、tcp和udp协议
 
 - tcp安全性更高 http协议是建立在tcp基础上的
-- ucp效率比tcp高 容易丢数据
+- udp效率比tcp高 容易丢数据
 
 ## 26、vuex的 五种状态
 
@@ -376,3 +376,59 @@ const person = new Person();
 - overflow：hidden
 - 子盒子脱标
 - 父盒子上padding
+
+## 31、清除浮动的方法
+
+#### 一共五种方法
+
+- 父盒子设置高度
+- overflow: hidden;
+- 伪元素
+- 双伪元素
+- 在父盒子末尾添加一个空盒子，设置 clear: both;
+
+## 32、split() 和 join() 的区别？
+
+- split 字符串转换为数组，参数为以某个字符串分割
+
+  ```js
+  let str = '123-456';
+  console.log(str.split('-')); // 输出：['123', '456']
+  ```
+
+- join 数组转换为字符串，参数表示转换为字符串以什么连接
+
+  ```js
+  let arr = ['123','456'];
+  console.log(arr.join('-')); // 输出：123-456
+  ```
+
+## 33、数组去重
+
+- 利用双for循环，配合数组方法splice方法去重(es5及之前常用)
+
+- set去重: 准备一个数组，数组解构new set，再准备一个函数存放数组变量作为函数判断值return
+
+  ```js
+  let arr = [1,3,2,3,4,5,5,1,2,3];
+  let test = new Set(arr);
+  console.log(Array.from(test)); // 输出：[1, 3, 2, 4, 5]
+  ```
+
+- 数组方法indexOf
+
+- 数组方法 sort Obj[a] - Obj[b]
+
+## 34、什么原因会造成内存泄漏
+
+- 全局变量使用不当(没有声明的变量)
+- 闭包使用不当
+- 定时器/延时器没有清理
+- 没有清理的DOM元素引用(dom清空或删除时，事件未清除)
+
+## 35、Vue中第一次加载页面会触发哪几个钩子函数
+
+- beforeCreate
+- created 数据初始化完成，方法页面调用，但是DOM未渲染
+- beforeMount
+- mounted DOM和数据挂载完成
