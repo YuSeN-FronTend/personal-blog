@@ -470,7 +470,7 @@ get请求和post请求底层都是基于TCP/IP协议实现的，使用二者中�
 #### 存储大小：
 
 - cookie 数据大小不能超过4K
-- sessionStorage和localStorage虽然也就存储大小的限制，但比cookie大得多，可以达到5m或更大
+- sessionStorage和localStorage虽然也有存储大小的限制，但比cookie大得多，可以达到5m或更大
 
 ## 39、dom如何实现浏览器内多个标签页之间的通信
 
@@ -478,3 +478,62 @@ get请求和post请求底层都是基于TCP/IP协议实现的，使用二者中�
 - 也可以调用localStorage、cookies等本地存储方式；localStorage另一个浏览器上下文里被添加、修改或删除时，他都会触发一个事件，我们通过监听事件，控制他的值进行页面信息通信；
 - 注意quirks：Safari在无痕模式下设置localStorage值时会抛出，quotaExceededError的异常
 
+## 40、vue.cli项目src目录每个文件夹和文件的用法
+
+- assets文件夹是放静态资源
+- components是放组件
+- router是定义路由相关的配置
+- view是视图
+- app.vue是应用主组件
+- main.js是入口文件
+
+## 41、$route和$router的区别
+
+- router为VueRouter的实例，相当于一个全局的路由器对象，里面含有很多属性和子对象，例如history对象等。经常用的跳转连接就可以使用this.$router.push，和router-link跳转一样
+- route相当于当前正在跳转的路由对象，可以从里面获取name，push，params，query等
+
+## 42、虚拟DOM实现原理
+
+- 用javaScript对象模拟真实DOM树，对真实DOM进行抽象
+- diff算法：比较两棵虚拟树的差异
+- pach算法：将两个虚拟DOM对象的差异应用到真实的DOM树
+
+## 43、普通函数和箭头函数的区别
+
+- 箭头函数没有原型，原型是undefined
+- 箭头函数this指向全局对象，而函数指向引用对象
+- call，apply，bind方法改变不了箭头函数的this指向
+
+## 44、怎样理解vue单项数据流
+
+数据总是从父组件到子组件，子组件没有权利修改父组件传过来的数据，只能请求父组件对原数据进行修改
+
+## 45、slot插槽
+
+- slot插槽，可以理解为slot在组件模板中提前占据了位置，当复用组件时，使用相关的slot标签时，标签里的内容就会自动替换组件模板中对应slot标签的位置，作为承载分发内容的出口
+- 主要作用是：复用和扩展组件，做一些定制化组件的处理
+
+## 46、vue常见指令
+
+- v-model 多用于表单元素实现双向数据绑定
+- v-bind：简写为：，动态绑定一些元素属性，类型可以是：字符串、对象或数组
+- v-on:click 给标签绑定函数，可以缩写为@click，例如绑定一个点击函数，函数必须写在methods里面
+- v-for 格式：v-for="字段名 in(of) 数组/json"  (要记得绑定key值)  
+- v-show 显示内容
+- v-if：取值为true/false，控制元素是否被渲染
+- v-else：和v-if指令搭配使用，没有对应的值。当v-if的值为false，v-else才会被渲染出来
+- v-else-if 必须和v-if连用
+- v-text 解析文本
+- v-html 解析html标签
+- v-bind:class 三种绑定方法
+  - 对象型 '{red: isred}'
+  - 三元型 'isred' ? 'red' : 'blue'
+  - 数组型 '[{red: "isred"}, {blue: "isblue"}]'
+- v-once 进入页面时 只渲染一次 不再进行渲染
+- v-cloak 防止闪烁
+- v-pre 把标签内部的元素原位输出
+
+## 48、vue中keep-alive的作用 
+
+- \<keep-alive> 是Vue的内置组件，能在组件切换过程中将状态保留在内存中，防止重复渲染DOM
+- \<keep-alive> 包裹动态组件时，会缓存不活动的组件实例，而不是销毁他们
