@@ -489,7 +489,7 @@ get请求和post请求底层都是基于TCP/IP协议实现的，使用二者中�
 
 ## 41、$route和$router的区别
 
-- router为VueRouter的实例，相当于一个全局的路由器对象，里面含有很多属性和子对象，例如history对象等。经常用的跳转连接就可以使用this.$router.push，和router-link跳转一样
+- router为VueRouter的实例，相当于一个全局的路由器对象，里面含有很多属性和子对象，例如history对象等。经常用的跳转链接就可以使用this.$router.push，和router-link跳转一样
 - route相当于当前正在跳转的路由对象，可以从里面获取name，push，params，query等
 
 ## 42、虚拟DOM实现原理
@@ -533,7 +533,7 @@ get请求和post请求底层都是基于TCP/IP协议实现的，使用二者中�
 - v-cloak 防止闪烁
 - v-pre 把标签内部的元素原位输出
 
-## 48、vue中keep-alive的作用 
+## 47、vue中keep-alive的作用 
 
 - \<keep-alive> 是Vue的内置组件，能在组件切换过程中将状态保留在内存中，防止重复渲染DOM
 - \<keep-alive> 包裹动态组件时，会缓存不活动的组件实例，而不是销毁他们
