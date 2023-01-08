@@ -8,29 +8,55 @@ categories: 面试
 
 核心思想就是Object.defineProperty()进行数据劫持。在vue3中改用Proxy(代理)来进行数据劫持。先来看一段代码。
 
-```js
-<div id="demo"></div>
-    <input type="text" id="inp">
-    <script>
-        let obj = {};
-        let demo = document.getElementById('demo');
-        let inp = document.getElementById('inp');
-        Object.defineProperty(obj, 'name', {
-            get:function() {
-                return val;
-            },
-            set:function(newVal) {
-                // newVal就是此时最新的obj.name
-                inp.value = newVal;
-                demo.innerHTML = newVal;
-            }
-        })
-        inp.addEventListener('input', function(e) {
-            // 当输入框中值变化时，就会改变obj.name
-            obj.name = e.target.value
-        })
-    </script>
-```
+- vue2
+
+  ```js
+  <div id="demo"></div>
+      <input type="text" id="inp">
+      <script>
+          let obj = {};
+          let demo = document.getElementById('demo');
+          let inp = document.getElementById('inp');
+          Object.defineProperty(obj, 'name', {
+              get:function() {
+                  return val;
+              },
+              set:function(newVal) {
+                  // newVal就是此时最新的obj.name
+                  inp.value = newVal;
+                  demo.innerHTML = newVal;
+              }
+          })
+          inp.addEventListener('input', function(e) {
+              // 当输入框中值变化时，就会改变obj.name
+              obj.name = e.target.value
+          })
+      </script>
+  ```
+
+- vue3
+
+  ```js
+  let obj = {
+              name:'yusen'
+          };
+          const p = new Proxy(obj,{
+              get(target,propName) {
+                  console.log('get');
+                  return Reflect.get(target,propName)
+              },
+              set(target,propName,value) {
+                  console.log('set');
+                  Reflect.set(target,propName,value);
+              },
+              deleteProperty(target,propName){
+                  console.log('delete');
+                  return Reflect.deleteProperty(target, propName)
+              }
+          })
+  ```
+
+  
 
 这段代码简单完成了一个双向绑定，看这个结构大家很眼熟，就是MVVM，也就是模型-视图-视图模型结构。
 
