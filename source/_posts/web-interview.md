@@ -33,7 +33,7 @@ categories: 面试
           })
       </script>
   ```
-
+<!-- more -->
 - vue3
 
   ```js
@@ -151,7 +151,7 @@ const person = new Person();
 ```js
        window.onload = function() {
             const debounceBtn = document.getElementById('debounce');
-            const thorttleBtn = document.getElementById('thorttle');
+            const throttleBtn = document.getElementById('throttle');
 
             // 防抖
             function Debounce(fn, delay) {
@@ -170,9 +170,9 @@ const person = new Person();
             debounceBtn.onclick = Debounce(() => { console.log('Debounce')},3000)
 
             // 节流
-            function Thorttle(fn,delay) {
+            function Throttle(fn,delay) {
                 let timer = null;
-                function thorttle(){
+                function throttle(){
                     if(!timer){
                         timer = setTimeout(()=>{
                             fn();
@@ -182,7 +182,7 @@ const person = new Person();
                 }
                 return thorttle;
             }
-            thorttleBtn.onclick = Thorttle(() => {console.log('thorttle');},3000);
+            throttleBtn.onclick = Throttle(() => {console.log('throttle');},3000);
         }
 ```
 
