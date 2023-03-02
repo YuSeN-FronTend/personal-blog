@@ -403,7 +403,7 @@ let p = new Promise((resolve, reject) => {
 
 resolve、reject、all、race由于不是实例方法，所以需要加static关键字
 
-```
+```js
 class Promise{
     // 构造方法
     constructor(executor) {

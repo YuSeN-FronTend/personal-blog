@@ -1,5 +1,5 @@
 ---
-title: 面经总结
+         title: 面经总结
 date: 2023-2-20 10:53
 categories: 面试
 ---
@@ -531,13 +531,218 @@ console.log(s === y); // false
   - AMD推崇依赖前置，是异步的
   - CMD推崇依赖就近，是同步的
 
-​	
+# 10、css3动画如何实现
+
+- ​	常规方法 利用**@keyframes  from to** 即可完成简单动画 见如下代码(只展示css部分)
+
+  ```css
+  div{
+          width: 100px;
+          height: 100px;
+          background-color: red;
+          animation: myFirst 5s;
+      }
+      @keyframes myFirst {
+          from{
+              background-color: red;
+          }
+          to{
+              background-color: yellow;
+          }
+      }
+  ```
+
+- 进阶方法(帧动画) 利用%做分段式动画，见如下代码
+
+  ```css
+  div{
+          width: 100px;
+          height: 100px;
+          position: relative;
+          background-color: red;
+          animation: myFirst 5s;
+      }
+       @keyframes myFirst {
+          0% {
+              background: red; left: 0px; top: 0px;
+          }
+          25% {
+              background: yellow; left: 200px; top:0px;
+          }
+          50% {
+              background: blue; left: 200px; top: 200px;
+          }
+          75%{
+              background: green; left: 0px; top: 200px;
+          }
+          100%{
+              background: red; left: 0px; top: 0px;
+          }
+      }
+  ```
+
+- 属性
+
+  - **@keyframes**  用来规定动画
+
+  - **animation**   所有动画属性的简写属性
+
+  - **animation-name**   规定@keyframes动画的名称
+
+  - **animation-duration**   规定动画完成一个周期所花费的秒或毫秒
+
+  - **animation-timing-function**   规定动画的速度曲线，默认是"ease"
+
+    - **ease**  动画以低速开始，然后加快，在结束前变慢
+    - **linear**   动画从头到尾是相同的
+    - **ease-in**   动画以低速开始
+    - **ease-out**   动画以低速结束
+    - **ease-in-out**   动画以低速开始和结束
+
+  - **animation-fill-mode**   规定当动画不播放时(规定当动画完成时，或当动画有一个延迟未开始播放时)，要应用到元素的样式
+
+  - **animation-delay**  规定动画何时开始，默认是0
+
+  - **animation-iteration-count**   规定动画被播放的次数 默认是1
+
+    - **infinite**   播放无限次
+
+  - **animation-direction**   是否在下一个周期逆向的播放 默认是normal
+
+    - **normal**   动画正常播放
+    - **reverse**   动画反向播放
+    - **alternate**   动画在奇数次正向播放，在偶数次反向播放
+    - **alternate-reverse**  与上述正相反
+
+  - **animation-play-state**   规定动画是否正在运行或暂停  默认是running
+
+    - **running**   指定正在运行的动画
+    - **paused**   指定暂停动画
 
 
+# 11、图片懒加载实现方法
 
+#### 原理：
 
+- 存储图片的真实路径，把图片的真实路径绑定给一个以data开头的自定义属性data-url即可，页面中的img元素如果没有src属性，浏览器就不会发出请求去下载图片。
+- 初始化img的时候，src不能是真实的图片地址（会一次性的发送请求），也不可以是空地址或者坏地址（会出现出错图标）。
+- 设置img的默认src为一张1px*1px，很小很小的gif透明图片（所有的img都用这一张，只会发送一次请求），之所以需要时透明的，是需要透出通过background设置的背景图
+- 需要一个滚动事件，判断元素是否在浏览器窗口，一旦进入视口才进行加载，当滚动加载的时候，就把这张透明的1px.gif图片替换为真正的url地址(也就是data-url里保存的值)
+- 等到图片进入视口后，利用js提取data-url的真实图片地址赋值给src属性，就会去发送请求加载图片，真正实现了按需加载。
 
+#### 实现方法：
 
+代码均为核心逻辑代码
+
+- 滚动监听+scrollTop+offsetTop+innerHeight
+
+  ```js
+         // 获取视口高度和内容的偏移量
+             let clietH = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+             var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+             console.log(clietH, scrollTop);
+             for (let i = 0; i < imgs.length; i++) {
+                 let x = scrollTop + clietH - imgs[i].offsetTop //当内容的偏移量+视口高度>图片距离内容顶部的偏移量时，说明图片在视口内
+                 if (x > 0) {
+                     imgs[i].src = imgs[i].getAttribute('data-url'); //从dataurl中取出真实的图片地址赋值给url
+                 }
+             }
+  ```
+
+- 滚动监听+getBoundingClientRect()
+
+  ```js
+  			// 获取视口高度和内容的偏移量
+                    let offsetHeight = window.innerHeight || document.documentElement.clientHeight
+                    Array.from(imgs).forEach((item, index) => {
+                    let oBounding = item.getBoundingClientRect() //返回一个矩形对象，包含上下左右的偏移值
+                    console.log(index, oBounding.top, offsetHeight);
+                     if (0 <= oBounding.top && oBounding.top <= offsetHeight) {
+                       	item.setAttribute('src', item.getAttribute('data-url'))
+                       }
+                     })
+  ```
+
+- intersectionObserve()
+
+  ```js
+  let imgs = document.getElementsByTagName('img')
+              // 1. 一上来立即执行一次
+              let io = new IntersectionObserver(function (entires) {
+                  //图片进入视口时就执行回调
+                  entires.forEach(item => {
+                      // 获取目标元素
+                      let oImg = item.target
+                      // 当图片进入视口的时候，就赋值图片的真实地址
+                      if (item.intersectionRatio > 0 && item.intersectionRatio <= 1) {
+                          console.log(item);
+                          oImg.setAttribute('src', oImg.getAttribute('data-url'))
+                      }
+                  })
+              })
+              Array.from(imgs).forEach(element => {
+                  io.observe(element)  //给每一个图片设置监听
+              });
+  ```
+
+  
+
+# 12、简述jwt
+
+全称为 JSON Web Token，在HTTP接口调用的时候，服务端需要对调用方做验证，以保证安全性，一种常见的方法就是jwt。
+
+### 应用场景
+
+- **认证**
+
+  认证是JWT的最常用的场景，只要用户完成登录，其随后的请求都会包含jwt，以允许用户访问经由当前jwt授权的路由，服务或者是资源。由于开销小且能被简单应用在跨域访问上，jwt在分布式站点上所支持的**单点登录**(SSO)已经是当前它被广泛应用的一个特性
+
+- **信息交换**
+
+  JWT是一种在各参与方之间安全传递信息的良好方法。由于JWT可以被签名，因而可用于确认发送者自称的身份。除此之外，由于signature使用header和payload进行计算，也可以验证内容没有被篡改。
+
+​	jwt的声明一般被用来在身份提供者和服务提供者间传递被认证的用户身份信息，以便于从资源服务器获取资源，也可以增加一些额外的其他业务逻辑所必须的声明信息，该token也可直接被用于认证，也可被加密。
+
+### jwt结构
+
+在紧凑形式下，JSON Web Token 由以下三部分组成：
+
+- Header(头部)
+- Payload(载荷)
+- Signature(签名)
+
+因此一个典型的JWT形式如：xxx.yyy.zzz，由两个点间隔
+
+# 13、微任务和宏任务
+
+js分为同步任务和异步任务，而异步任务又分为宏任务和微任务，其中异步任务属于耗时任务。
+
+### 微任务和宏任务都有哪些
+
+- 宏任务
+  - 整体代码script
+  - setTimeout
+  - setInterval
+  - setImmediate
+  - i/o操作（输入输出，比如读取文件操作，网络请求）
+  - ui render
+  - 异步Ajax
+- 微任务
+  - Promise(then、catch、finally)
+  - async/await
+  - process.nextTick
+  - Object.observe(用来实时检测js中对象的变化)
+  - MutationObserver(监听DOM树的变化)
+
+### 执行顺序
+
+- 宏任务执行顺序
+
+  setImmediate ---> setTimeout ---> setInterval ---> i/o操作 ---> 异步ajax
+
+- 微任务执行顺序
+
+  process.nextTick ---> Promise
 
 
 
