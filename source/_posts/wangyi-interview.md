@@ -744,5 +744,69 @@ js分为同步任务和异步任务，而异步任务又分为宏任务和微任
 
   process.nextTick ---> Promise
 
+# 14、简述WebSocket
+
+WebSocket是一种**网络传输协议**，可在单个TCP连接上进行全双工通信，位于OSI模型的应用层。
+
+http协议是只能客户端向服务端发送请求，然后服务端返回一个response，无法获取实时的信息传递。但是ajax轮询，long doll可以是http协议完成实时信息传递，但实现的原理就是频繁的发送请求。
+
+WebSocket只需要和服务端建立一次连接，然后客户端只要有数据，就会源源不断的推送过来。
+
+# 15、元素居中办法
+
+- 绝对定位
+
+  ```css
+  div{
+          height: 300px;
+          width: 300px;
+          background: red;
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          margin: auto;
+      }
+  ```
+
+  ```css
+  div{
+          height: 300px;
+          width: 300px;
+          background: red;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+      }
+  ```
+
+  ```css
+  div{
+          height: 300px;
+          width: 300px;
+          background: red;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          margin-top: -150px;
+          margin-left: -150px;
+      }
+  ```
+
+- 弹性盒子
+
+  ```css
+  /* 父盒子上添加 */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  ```
+
+  
+
 
 
