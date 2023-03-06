@@ -806,5 +806,124 @@ WebSocket只需要和服务端建立一次连接，然后客户端只要有数�
   align-items: center;
   ```
 
+
+# 16、迭代器和生成器
+
+### 迭代器
+
+循环是迭代机制的基础，这是因为它可以指定迭代的次数，以及每次迭代要执行什么操作。每次循环都会在下一次迭代开始之前完成，而每次迭代的顺序都是事先定义好的。迭代会在一个有序集合上进行。数组是js中有序集合的最典型的例子。
+
+任何实现Iterable接口的数据结构都可以被实现Iterable接口的结构“消费”。**迭代器**是按需创建的一次性对象。每个迭代器都会关联一个**可迭代对象**，而迭代器会暴露迭代其关联可迭代对象的API。
+
+实现Iterable接口要求同时具备两种能力：支持迭代的自我识别能力和创建实现Iterable接口的对象的能力。以下内置类型实现了Iterable接口：
+
+- 字符串
+
+- 数组
+
+- 映射
+
+- 集合
+
+- arguments对象
+
+- NodeList等DOM集合类型
+
+  ```js
+  let str = 'abc';
+  let arr =  ['a', 'b', 'c'];
+  let map = new Map().set('a', 1).set('b', 2).set('c', 3);
+  let set = new Set().add('a').add('b').add('c');
   
+  console.log(str[Symbol.iterator]()); // Object [String Iterator] {}
+  console.log(arr[Symbol.iterator]()); // Object [Array Iterator] {}
+  console.log(map[Symbol.iterator]()); // [Map Entries] { [ 'a', 1 ], [ 'b', 2 ], [ 'c', 3 ] }
+  console.log(set[Symbol.iterator]()); // [Set Iterator] { 'a', 'b', 'c' }
+  ```
+
+接收可迭代对象的原生语言特性包括：
+
+- for-of循环
+- 数组解构
+- 扩展操作符
+- Array.from()
+- 创建集合
+- 创建映射
+- Promise.all()接收由期约组成的可迭代对象
+- Promise.race()接收由期约组成的可迭代对象
+- yield*操作符，在生成器中使用
+
+next()方法返回的迭代器对象IteratorResult包含两个属性：done和value。done是一个布尔值，表示是否还可以再次调用next()取得下一个值；value包含可迭代对象的下一值(done为false)，或者undefined(done为true)。done: true状态称为"耗尽"。
+
+#### 提前终止迭代器
+
+可选的return()方法用于指定的迭代器提前关闭时执行的逻辑。执行迭代的结构在想让迭代器知道它不想遍历到可迭代对象耗尽时，就可以关闭"迭代器"。以下是可能的情况：
+
+- for-of 循环通过break、continue、return或throw提前退出
+- 解构操作并未消费所有的值
+
+return()方法必须返回一个有效的IteratorResult对象。简单情况下，可以只返回{ done: true }。因为这个返回值只会在生成器的上下文中。 
+
+### 生成器
+
+生成器的形式是一个函数，函数名称前面加一个星号(*)表示它是一个生成器。只要是可以定义函数的地方，就可以定义生成器。
+
+```js
+// 生成器函数声明
+function* generatorFn();
+// 生成器函数表达式
+let generatorFn = function* () {};
+// 作为对象字面量方法的生成器函数
+let foo = {
+    * generatorFn() {}
+}
+// 作为类实例方法的生成器函数
+class Foo{
+    * generatorFn() {}
+}
+// 作为类静态方法的生成器函数
+class Bar{
+    static * generatorFn() {}
+}
+```
+
+**注**：箭头函数不能用来定义生成器函数。
+
+调用生成器函数会产生一个**生成器对象**，生成器对象一开始出于暂停执行的状态。与迭代器相似，生成器对象也实现了Iterator接口，因此具有next()方法。调用这个方法会让生成器开始或恢复执行。函数体为空的生成器函数中间不会停留，调用一次next()就会让生成器到达done: true。
+
+```js
+function * generatorFn(){}
+const g = generatorFn();
+
+console.log(g); // Object [Generator] {}
+console.log(g.next()); // { value: undefined, done: true }
+```
+
+#### 通过yield中断执行 
+
+yield可以让生成器停止和开始执行，也是生成器最有用的地方。生成器函数再遇到yield关键字之前会正常执行。遇到这个关键字后，执行会停止，函数作用域的状态会被保留。停止执行生成器函数只能通过生成器对象上调用next()方法来执行。
+
+```js
+function* generatorFn() {
+    yield;
+}
+
+let generatorObject = generatorFn();
+console.log(generatorObject.next()); // { value: undefined, done: false }
+console.log(generatorObject.next()); // { value: undefined, done: true }
+```
+
+#### 提前中止生成器
+
+与迭代器类似，生成器也支持“可关闭”的概念。一个实现Iterator接口的对象一定有next()方法，还有一个可选的return()方法用于提前终止迭代器。生成器对象除了有两个方法，还有第三个方法: thorw()
+
+```js
+function* generatorFn() { }
+
+const g = generatorFn();
+console.log(g); // Object [Generator] {}
+console.log(g.next); // [Function: next]
+console.log(g.return); // [Function: return]
+console.log(g.throw); // [Function: throw]
+```
 
