@@ -8,10 +8,6 @@ categories: typeScript
 
 TypeScript是以javaScript为基础构建的语言，是javaScript的一个超集。TS是微软开发的，写出的代码相较于JS更容易维护，并且TS完全包含JS的所有特性和功能，又在基础上加了许多的新功能。
 
-![](http://106.55.171.176:9000/yusen/Snipaste_2022-11-28_12-43-42.png)
-
-<!-- more -->
-
 ## TypeScript的环境搭建
 
 1.**安装node坏境** 
@@ -31,6 +27,8 @@ npm i -g typescript
 - 进入命令行
 - 进入ts文件所在目录
 - 执行命令：tsc xxx.ts
+
+<!-- more -->
 
 ## 基本类型
 

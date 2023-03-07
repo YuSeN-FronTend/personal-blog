@@ -744,6 +744,54 @@ js分为同步任务和异步任务，而异步任务又分为宏任务和微任
 
   process.nextTick ---> Promise
 
+await会等待右侧函数代码执行之后阻塞当前async函数中后面的代码跳出执行外面的代码，async声明的函数如果没有await，等同于普通的同步函数
+
+举个例子：
+
+```js
+async function async1() {
+    console.log('async1 start');
+    await async2();
+    console.log('async1 end');
+}
+
+async function async2() {
+    console.log('async2 start');
+    await async3();
+    console.log('async2 end');
+}
+async function async3() {
+    console.log('async3');
+    process.nextTick(() => {
+        console.log('2')
+    })
+}
+new Promise((resolve, reject) => {
+    resolve('ok')
+}).then((value) => {
+    console.log(value);
+})
+
+process.nextTick(() => {
+    console.log('1')
+})
+
+async1();
+
+
+// 执行顺序为
+// async1 start
+// async2 start
+// async3
+// 1
+// 2
+// ok
+// async2 end
+// async1 end
+```
+
+这里面三个async声明函数执行顺序不难理解，但是在执行完毕后，先async2 end, 后async1 end，这是因为await阻塞当前async函数后面代码，async1函数先被阻塞，所以后面都执行完毕才会执行。第二个疑点就是async3函数内部的process.nextTick和在外部的process.nextTick才回去执行，promise由于在微任务中执行顺序在process之后，所以在他们后面执行。
+
 # 14、简述WebSocket
 
 WebSocket是一种**网络传输协议**，可在单个TCP连接上进行全双工通信，位于OSI模型的应用层。
@@ -926,4 +974,51 @@ console.log(g.next); // [Function: next]
 console.log(g.return); // [Function: return]
 console.log(g.throw); // [Function: throw]
 ```
+
+# 17、js作用域链详解
+
+作用域链包括**作用域**，**词法作用域**，**作用域链**
+
+## 作用域
+
+作用域就是变量(变量作用域又被称作上下文)和函数生效(能被访问)的区域或集合。也就是作用域决定了代码区块中变量和其他资源的可见性。
+
+作用域一般分为以下三种:
+
+- 全局作用域
+
+  任何不在函数或是大括号中的变量，都是在全局作用域下，全局作用域中声明的变量可以在程序的任意位置访问
+
+- 局部作用域
+
+  如果一个变量被声明在函数内部，它就是在局部作用域，这个变量只能在函数内部访问，不能在函数以外去访问
+
+- 块级作用域
+
+  ES6引入了let和const关键字，和var关键字不同，在大括号中使用let和const声明的变量存在于块级作用域中，在大括号之外不能访问这些变量
+
+## 词法作用域
+
+词法作用域又被称为静态作用域，变量被创建时就确定好了，而非执行阶段确定的，也就是说我们写好代码的时候它的作用域就已经确定了，js所遵循的就是词法作用域
+
+```js
+var a = 2;
+function foo(){
+    console.log(a);
+}
+
+function bar() {
+    var a = 3;
+    foo(); // 输出 2
+}
+bar();
+```
+
+以上代码中，由于两个函数都是在全局作用域内，所以它们不能访问到互相的局部作用域内的值，所以foo函数还是返回2
+
+## 作用域链
+
+当在js中使用一个变量的时候，首先js引擎会尝试在当前作用域下去寻找，如果找不到，在上层作用域中去找以此类推，直到找到为止，但是如果直到全局作用域仍然找不到该变量，他就会在全局范围内隐式声明该变量(非严格模式下)或者直接报错
+
+
 

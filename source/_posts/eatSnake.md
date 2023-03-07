@@ -4,9 +4,7 @@ date: 2022-12-2 10:52
 categories: typeScript
 ---
 
-![](http://106.55.171.176:9000/yusen/Snipaste_2022-12-02_11-05-12.png)
 
-<!-- more -->
 
 ## 环境搭建
 
@@ -34,6 +32,8 @@ categories: typeScript
 ```
 
 小案例需要用到的插件。
+
+<!-- more -->
 
 ## 主要代码以及思路
 

@@ -20,6 +20,8 @@ categories: javaScript
   - 不便于阅读
   - 不便于异常处理
 
+<!-- more -->
+
 # 3、Promise的状态改变
 
 三种状态：

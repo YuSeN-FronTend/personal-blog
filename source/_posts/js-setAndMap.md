@@ -3,10 +3,6 @@ title: Set&&Map
 date: 2022-11-18 10:30
 categories: javaScript
 ---
-![](http://106.55.171.176:9000/yusen/Snipaste_2022-11-18_12-03-28.png)
-
-<!-- more -->
-
 ## Map
 
 ### 初始化Map
@@ -32,6 +28,8 @@ console.log(m1.set('c', 333)); // 输出 Map(3) { 'a' => 111, 'b' => 222, 'c' =>
 console.log(m1.delete('c')); // 因为map数组中包含键值'c' 所以输出 true
 console.log(m1); // 输出 Map(2) { 'a' => 111, 'b' => 222 }
 ```
+
+<!-- more -->
 
 ### size
 

@@ -3,10 +3,6 @@ title: js常用数组方法
 date: 2022-11-17 14:00
 categories: javaScript
 ---
-![](http://106.55.171.176:9000/yusen/Snipaste_2022-11-18_10-20-23.png)
-
-<!-- more -->
-
 ## 增
 
 ### push()
@@ -36,6 +32,8 @@ console.log(arr, newArr);
 输出 **[ 4, 1, 2, 3 ] 4**
 
 此方法是向数组前面添加一个元素。
+
+<!-- more -->
 
 ## 删
 

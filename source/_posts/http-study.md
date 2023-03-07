@@ -4,10 +4,6 @@ date: 2022-12-4 12:33
 categories: HTTP协议
 ---
 
-![](http://106.55.171.176:9000/yusen/Snipaste_2022-12-09_10-08-57.png)
-
-<!-- more -->
-
 ### 一、什么是HTTP协议
 
 HTTP是Hyper Text Transport Protocol的缩写，望文知意便是超文本传输协议。
@@ -21,6 +17,8 @@ HTTP是Hyper Text Transport Protocol的缩写，望文知意便是超文本传�
 我们把用过发送请求达到获取服务器资源的web浏览器称为客户端（client）。将web类比于现实生活，发送请求以获取资源的就是顾客（客户端），提供资源的就是服务员（服务器端）。
 
 总而言之，HTTP就是负责在客户端请求资源，在服务器端响应的协议。
+
+<!-- more -->
 
 ### 三、与HTTP密切相关的其他协议
 

@@ -4,10 +4,6 @@ date: 2022-12-9 10:12
 categories: git
 ---
 
-![](http://106.55.171.176:9000/yusen/Snipaste_2022-12-09_11-58-19.png)
-
-<!-- more -->
-
 ## Git简介
 
 - Git是一个开源的分布式版本控制系统，用于敏捷高效的处理或大或小的项目。
@@ -27,15 +23,13 @@ Git不仅仅是个版本控制系统，它也是个内容管理系统（CMS）�
 - **Git没有一个全局的版本号，而SVN有：**目前为止这是跟SVN相比Git缺少的最大一个特征。
 - **Git的内容完整性要由于SVN：**Git的内容存储使用的是SHA-1哈希算法。这能确保代码内容的完整性，确保在遇到磁盘故障和网络问题时降低对版本库的破坏。
 
-![](http://106.55.171.176:9000/yusen/Snipaste_2022-12-09_10-48-11.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=sttch%2F20221209%2F%2Fs3%2Faws4_request&X-Amz-Date=20221209T024847Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=441ad3d388c3c871e016cd34da165ef90167d88658e90b024203b7e5dcddb7ef)
+<!-- more -->
 
 ## Git基本操作
 
 Git的工作就是创建和保存你项目的快照及与之后的快照进行对比。
 
 Git常用的6个命令：**git clone**、**git push**、**git add**、**git commit**、**git checkout**、**git pull**。
-
-![](http://106.55.171.176:9000/yusen/Snipaste_2022-12-09_11-35-45.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=sttch%2F20221209%2F%2Fs3%2Faws4_request&X-Amz-Date=20221209T033559Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=d44e55ef1bfe37cd619bfb219d7e79c96cc8bb2b561c89b319a880ab853c5268)
 
 **说明：**
 

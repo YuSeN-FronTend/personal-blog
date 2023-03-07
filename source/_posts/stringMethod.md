@@ -4,10 +4,6 @@ date: 2022-11-24 10:20
 categories: javaScript
 ---
 
-![](http://106.55.171.176:9000/yusen/Snipaste_2022-11-22_13-08-28.png)
-
-<!-- more-->
-
 ## String
 
 ### 字符串的初始化
@@ -31,6 +27,8 @@ console.log(stringValue.length);
 ```
 
 输出 **11**
+
+<!-- more-->
 
 ### charAt()
 
