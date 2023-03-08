@@ -362,9 +362,16 @@ let p = new Promise((resolve, reject) => {
           // 声明变量
           let count = 0;
           let arr = [];
-  
+          // 如果参数是非数组对象则转化为数组
+  		if (!(promises instanceof Array)){
+              promises = Array.from(promises)
+          }
           //循环接收到的数组
           for(let i = 0; i < promises.length; i++){
+              // 如果传进来的数组存在非promise对象，就变为promise对象
+               if (!(promises[i] instanceof Promise)){
+                  promises[i] = Promise.resolve(promises[i])
+              }
               // 由于返回的都是promise对象，所以用.then方法来获取
               promises[i].then((v) => {
                   // 每次成功后使count+1做个识别
