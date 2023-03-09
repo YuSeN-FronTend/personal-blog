@@ -252,3 +252,292 @@ css:
     }
 ```
 
+# 6、arguments详解
+
+## 概念
+
+arguments是一个对应传递给函数的参数的类数组对象(有长度但是并没有数组的内置方法)
+
+```js
+function foo(){
+    console.log(arguments); // [Arguments] { '0': 1, '1': 'a', '2': true, '3': [ 'abc', 2 ] }
+}
+
+foo(1,'a',true,['abc',2])
+```
+
+## 将arguments转换为数组的方法
+
+- Array.from()
+
+  ```js
+  function foo() {
+      console.log(Array.from(arguments)); // [ 1, 'a', true, [ 'abc', 2 ] ]
+  }
+  
+  foo(1, 'a', true, ['abc', 2])
+  ```
+
+- 扩展运算符
+
+  ```js
+  function foo() {
+      console.log([...arguments]); // [ 1, 'a', true, [ 'abc', 2 ] ]
+  }
+  
+  foo(1, 'a', true, ['abc', 2])
+  ```
+
+## 属性
+
+- arguments.callee
+
+  调用函数自己本身，类似于递归，不同的是此方法可以应用在匿名函数中，不需要知道函数名。
+
+  ```js
+  let a = 0;
+  function foo(num) {
+      if(num){
+          a += num;
+          arguments.callee(--num);
+      }else{
+          console.log(a); // 15
+      }
+  }
+  foo(5)
+  ```
+
+  上面代码是一个简单的实现
+
+- arguments.length
+
+  ```js
+  function foo() {
+     console.log(arguments.length); // 4
+  }
+  
+  foo(1, 'a', true, ['abc', 2])
+  ```
+
+  这也是arguments被称作类数组的理由，因为有长度
+
+- arguments[@@iterator]
+
+  语法为  arguments[Symbol.iterator]
+
+  ```js
+  function foo() {
+     console.log(arguments.length); // 4
+  }
+  
+  foo(1, 'a', true, ['abc', 2])function foo() {
+     for(let i of arguments) {
+         console.log(i);// 1   a   true   [ 'abc', 2 ]
+     }
+  }
+  
+  foo(1, 'a', true, ['abc', 2])
+  ```
+
+  能进行for of循环就说明它会返回一个新的Array迭代器
+
+# 7、父子组件的生命周期
+
+父组件的beforeCreate --> 父组件的created --> 父组件的beforeMount --> 子组件的beforeCreate --> 子组件的created --> 子组件的beforeMount --> 子组件的mounted --> 父组件的mounted --> 父组件的beforeUpdate --> 子组件的beforeUpdate --> 子组件的updated --> 父组件的updated --> 父组件的beforeDestroy --> 子组件的beforeDestroy --> 子组件的destroyed --> 父组件的destroyed
+
+# 8、组件间通信
+
+vuex这里不做记录
+
+组件间通信一般分为三种
+
+- 父子组件之间通信
+- 兄弟组件之间通信
+- 隔代组件之间通信
+
+## 父子组件之间通信
+
+- props
+
+  父组件直接给子组件传值，子组件用props去接收
+
+  ```html
+  <!-- 父组件 -->
+  <template>
+      <div class="father">
+          <son :text="text"></son>
+      </div>
+  </template>
+  
+  <script>
+  import son from './son.vue';
+  export default {
+      components: {
+          son
+      },
+      data() {
+          return {
+              text: '123'
+          }
+      },
+  }
+  </script>
+  ```
+  
+  ```js
+  // 子组件
+  <template>
+      <div class="son">
+          {{ text }}
+      </div>
+  </template>
+  
+  <script>
+  export default {
+      props:['text'],
+      data() {
+          return {
+          }
+      }
+  }
+  </script>
+  ```
+  
+- $emit父组件给子组件传值
+
+  ```vue
+  <!-- 父组件 -->
+  <template>
+      <div class="father">
+          <son @titleChange="titleChange"></son>
+          <div>{{ title }}</div>
+      </div>
+  </template>
+  
+  <script>
+  import son from './son.vue';
+  export default {
+      components: {
+          son
+      },
+      data() {
+          return {
+              title: ''
+          }
+      },
+      methods: {
+          titleChange(title) {
+              this.title = title
+          }
+      }
+  }
+  </script>
+  ```
+
+  ```vue
+  <!-- 子组件 -->
+  <template>
+      <div class="son">
+          <button @click="handleClick">传值</button>
+      </div>
+  </template>
+  
+  <script>
+  export default {
+      methods: {
+          handleClick() {
+              this.$emit('titleChange', 'new Title')
+          }
+      }
+  }
+  </script>
+  ```
+
+  
+
+## 兄弟间组件通信
+
+### 状态提升方法
+
+就是给两个兄弟组件提供一个父组件负责处理数据，来解决兄弟组件间的通信
+
+```vue
+<!-- 父组件 -->
+<template>
+    <div class="father">
+        <son :title="title" :change-title="changeTitle"></son>
+        <son1 :title="title1" :change-title="changeTitle1"></son1>
+    </div>
+</template>
+
+<script>
+import son from './son.vue';
+import son1 from './son1.vue';
+export default {
+    components: {
+        son,
+        son1
+    },
+    data() {
+        return {
+            title:'',
+            title1:''
+        }
+    },
+    methods:{
+        changeTitle(){
+            this.title = 'son'
+        },
+        changeTitle1(){
+            this.title1 = 'son1'
+        }
+    }
+}
+</script>
+```
+
+```vue
+<!-- 子组件1 -->
+<template>
+    <div class="son">
+        {{ title }}
+        <button @click="changeTitle">change sonTitle</button>
+    </div>
+</template>
+
+<script>
+export default {
+    props:{
+        title:{
+            type: String
+        },
+        changeTitle: Function
+    },
+}
+</script>
+```
+
+```vue
+<!-- 子组件2 -->
+<template>
+  <div class="son1">
+    {{ title }}
+    <button @click="changeTitle">change son1Title</button>
+  </div>
+</template>
+
+<script>
+export default {
+ components: {},
+ props:{
+    title:{
+        type:String
+    },
+    changeTitle: Function
+ },
+}
+</script>
+```
+
+## 隔代组件之间通信
+
