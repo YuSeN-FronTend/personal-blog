@@ -541,3 +541,117 @@ export default {
 
 ## 隔代组件之间通信
 
+- $attrs
+
+  ```vue
+  <!-- 父组件 -->
+  <template>
+      <div class="father">
+          <son :title="title"></son>
+      </div>
+  </template>
+  
+  <script>
+  import son from './son.vue';
+  export default {
+      components: {
+          son,
+      },
+      data() {
+          return {
+              title:'123',
+          }
+      },
+  }
+  </script>
+  ```
+
+  ```vue
+  <!-- 子组件1 -->
+  <template>
+      <div class="son">
+          {{ title }}
+          <grandson v-bind="$attrs"></grandson>
+      </div>
+  </template>
+  
+  <script>
+  import grandson from './grandson.vue';
+  export default {
+      inheritAttrs: true,
+      components:{
+          grandson
+      },
+  }
+  </script>
+  ```
+
+  ```vue
+  <!-- 孙子组件 -->
+  <template>
+    <div class="son1">
+      {{ title }}
+    </div>
+  </template>
+  
+  <script>
+  export default {
+   components: {},
+   props:{
+      title:{
+          type:String
+      },
+   },
+  }
+  </script>
+  ```
+
+- $parent/$children
+
+  但是并不推荐使用。
+
+# 9、虚拟DOM
+
+## 虚拟DOM的概念
+
+- 起源
+
+  虚拟DOM最先是facebook团队提出的，最先运用在react中，vue在vue2.0版本引入了虚拟DOM的概念
+
+- 虚拟DOM的含义
+
+  **虚拟DOM是相对于浏览器渲染出来的真实DOM**
+
+  以往，我们改变更新页面，只能通过首先查找DOM对象，再进行修改DOM的方式来达到目的。但这种方式**相当消耗计算资源**。(因为每次查询DOM都需要遍历整棵DOM树)
+
+  虚拟DOM树就是用对象的方式来描述真实的DOM，并且对象与真实DOM建立了一对一对应的关系，那么每次DOM修改，我通过找到对应的对象，也就找到了响应的DOM节点，在对其进行更新。这样的话，就是节省性能，因为**js对象的查询，比起对整个DOM树的查找，所消耗的性能要少。**
+
+## 虚拟DOM的优缺点
+
+优点：
+
+- 降低浏览器性能消耗
+
+  因为JavaScript的运算速度远大于DOM操作的执行速度，因此，运用patching算法来计算出真正需要更新的节点，最大限度地减少DOM操作，从而提高性能。
+
+- diff算法 减少重绘和回流
+
+  通过diff算法，优化遍历，对真实DOM进行打补丁式地新增，修改，删除，实现局部更新，减少回流和重绘。
+
+  **扩展**：当页面内容和布局没有发生改变，只是元素外观发生改变就会产生重绘。当页面地一部分内容或布局发生改变，重新构建页面就会产生回流。产生重绘不一定会造成回流，产生回流不一定会造成重绘。
+
+- 跨平台
+
+  虚拟DOM本质上是一个javaScript对象，而DOM与平台强相关，相比之下虚拟DOM更适合跨平台开发。例如: **服务器渲染(SSR)、week开发**等等。
+
+缺点：
+
+- 首次显示要慢些
+
+  首次渲染大量DOM是，由于多了一层虚拟DOM地计算，会比innerHTML插入慢
+
+- 无法进行极致优化
+
+  虽然虚拟DOM+合理地优化，足以应对绝大部分应用的性能需求，但在一些性能要求极高地应用中，无法进行针对性地机制优化。
+
+  
