@@ -655,3 +655,102 @@ export default {
   虽然虚拟DOM+合理地优化，足以应对绝大部分应用的性能需求，但在一些性能要求极高地应用中，无法进行针对性地机制优化。
 
   
+
+# 10、a == 1 && a == 2 && a == 3常用解法
+
+先说以下双等号的比较规则：如果操作数是之一是对象，另一个是数字或字符串，会尝试使用对象的valueOf和toString方法将对象转换为原始值。
+
+## 隐式转换之重写valueOf() / toString()
+
+这种是**最常见**的解法，直接重写valueOf或toString。
+
+经过分析可以不难看出，a一定不是一个原始数据类型，那a只能是一个复杂数据类型，常见的又对象，数组。
+
+思路：构造一个对象，有一个属性i=1，改写valueOf方法，每次返回i，并让i++。以下是代码实现。
+
+```js
+const a = {
+    i: 1,
+    valueOf(){
+        return this.i++;
+    }
+}
+
+if(a == 1 && a == 2 && a == 3) {
+    console.log(a); // { i: 4, valueOf: [Function: valueOf] }
+}
+```
+
+## 使用Object.defineProperty改写数组join方法
+
+这里对象也可以是数组，因此数组与数字的比较也会尝试调用valueOf()和toString()方法，如下面例子
+
+```js
+let arr = [1,2,3]
+let str = '1,2,3';
+console.log(arr == str); // true
+```
+
+实际上，数组上的toString方法和join方法存在一定的联系，具体表现为：
+
+- `Array.prototype.toString() === Array.prototype.join()`(对于任何数组，默认方法也成立，且方法无参数)
+- 数组在调用`toString`方法的时候，如果`toString`方法没有被重写，而是`join`方法被重写了，则数组就会去调用`join`方法
+
+比如我们改写数组的join方法，没有改变toString方法，那么调用toString方法就会执行join方法，如下列代码所示：
+
+```js
+let arr = [1,2,3];
+arr.join = () => { console.log('join被重写了'); };
+arr.toString(); // join被重写了
+```
+
+以上分析表明：对于数组而言，隐式调用toString相当于执行了join方法。对于数组我们无法在内部直接添加方法，所以我们使用`Object.defineProperty()`
+
+### Object.defineProperty() 
+
+##### 语法
+
+> Object.defineProperty(obj, prop, descriptor);
+
+##### 参数
+
+- `obj`: 要定义属性或方法的目标对象
+- `prop`: 要定义的属性或方法名
+- `descriptor`: 一个对象，包含value等属性
+
+思路：让数组的`join`方法赋值给`shift`方法，这样每次与数组比较都执行了`join`方法，间接执行了`shift`，弹出数组中的第一个元素。
+
+```js
+let a = Object.defineProperty([1,2,3], 'join', {
+    get() {
+        return () => this.shift();
+    }
+})
+
+if(a == 1 && a == 2 && a == 3) {
+    console.log(a); // []
+}
+```
+
+## 使用Proxy代理构造get捕获器
+
+ES6的新特性Proxy，能够代理对象的一些行为，例如在获取目标对象的一些属性和方法的时候进行拦截或者进一步处理后再返回结果。
+
+思路：和第一种改写`valueOf`方法然后每次递增`i`的方法思想是一样的，只是换成了`proxy`代理模式，下面是代码实现
+
+```js
+let a = new Proxy({ v: 1}, {
+    get(target, property, receiver){
+        // 隐式转换会调用Symbol.toPrimitive，这是一个函数
+        if (property === Symbol.toPrimitive){
+            // 函数属性，所以要返回一个函数，会被执行
+            return () => target.v++
+        }
+    }
+})
+
+if(a == 1 && a == 2 && a == 3) {
+    console.log(a); //{ v: 4 }
+}
+```
+
