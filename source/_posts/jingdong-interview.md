@@ -754,3 +754,39 @@ if(a == 1 && a == 2 && a == 3) {
 }
 ```
 
+# 11、js基本类型之——bigInt
+
+`bigInt`是ES11引入的新的基本数据类型。`bigInt`数据类型的目的是比`Number`数据类型支持的范围更大的整数值，以任意精度表示整数，使用`bigInt`解决了之前`Number`整数溢出的问题
+
+## 表示方式
+
+只需在普通整形后加n即可
+
+```js
+let a =  521n;
+console.log(a, typeof a); // 521n bigint
+```
+
+## BigInt函数
+
+可以将普通整数值转化为大整型的值，但是需要注意的是不能使用浮点数进行转换
+
+```js
+console.log(BigInt(521)); // 521n
+console.log(BigInt(0.2)); // RangeError: The number 0.2 cannot be converted to a BigInt because it is not an integer at BigInt(<anonymous>)
+```
+
+## 大数值运算
+
+```js
+let max = Number.MAX_SAFE_INTEGER; // Number的最大值
+console.log(max); // 9007199254740991
+console.log(max + 1); // 9007199254740992
+// 超过最大范围，运算就会出错
+console.log(max + 2); // 9007199254740992
+
+// BigInt数据类型不能直接和普通数据类型进行运算
+console.log(BigInt(max) + BigInt(2)); // 9007199254740993n
+console.log(BigInt(max) + BigInt(50)); // 9007199254741041n
+```
+
