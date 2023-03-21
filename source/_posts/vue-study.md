@@ -1,5 +1,5 @@
 ---
-title: vue学习
+title: vue基础
 date: 2023-3-17 16:11
 categories: javaScript
 ---
@@ -270,3 +270,504 @@ watch:{
 ```
 
 上述代码当每次点击按钮，num都会+1，并且watch监听着num的变化，所以每次num改变时，控制台都会打印响应数据。
+
+# Class与Style绑定
+
+操作元素class列表和内联样式都是数据绑定的常见需求。因为他们都是attribute，所以我们可以使用`v-bind`去处理它们: 只需要通过表达式计算出字符串结果即可。表达式类型除了字符串之外，还可以是对象或数组。
+
+## 绑定 HTML Class
+
+### 对象语法
+
+```html
+<div :class="{ active: isShow }">vue</div>
+```
+
+以上代码确定div是否有`active`样式取决于`isShow`的布尔值是否为真
+
+并且动态添加类名指令也可以和普通类共存，如以下代码
+
+```html
+<div class="box" :class="{ active: isShow }">vue</div>
+```
+
+动态类还可如以下方式编写
+
+```vue
+<template>
+    <div class="container">
+        <div :class="objStyle">vue</div>
+    </div>
+</template>
+
+<script>
+export default {
+    data() {
+        return {
+            objStyle: {
+                active: true,
+                isShow: false
+            }
+        }
+    },
+}
+</script>
+
+<style scoped>
+.active {
+    color: red;
+}
+
+.isShow {
+    display: none;
+}
+</style>
+
+```
+
+同样只会为div添加上`class="active"`, 甚至绑定的值还可为计算属性
+
+### 数组语法
+
+```vue
+<template>
+    <div class="container">
+        <div :class="[activeClass, isShowClass]">vue</div>
+    </div>
+</template>
+
+<script>
+export default {
+    data() {
+        return {
+            activeClass: 'active',
+            isShowClass: 'isShow'
+        }
+    },
+}
+</script>
+
+<style scoped>
+.active {
+    color: red;
+}
+
+.isShow {
+    display: none;
+}
+</style>
+
+```
+
+以上写法可以添加上两个类名，还可以嵌套使用三元表达式和对象
+
+### 用在组件上
+
+在组件上添加类名会被直接添加上去，并且上述方法依旧有效
+
+## 绑定内联样式
+
+### 对象语法
+
+```vue
+<template>
+    <div class="container">
+        <div :style="{ color: colorStyle, fontSize: fontStyle + 'px'}">vue</div>
+    </div>
+</template>
+
+<script>
+export default {
+    data() {
+        return {
+            colorStyle: 'red',
+            fontStyle: 30
+        }
+    },
+}
+</script>
+```
+
+其中的css property名可以用驼峰式或短横线分隔(记得用引号括起来)
+
+但是通常情况下，直接绑定一个样式对象通常更好，这会让模板更清晰：
+
+```vue
+<template>
+    <div class="container">
+        <div :style="objStyle">vue</div>
+    </div>
+</template>
+
+<script>
+export default {
+    data() {
+        return {
+            objStyle:{
+                color: 'red',
+                fontSize: '30px'
+            }
+        }
+    },
+}
+</script>
+```
+
+### 数组语法
+
+```html
+<div v-bind:style="[baseStyles, objStyle]"></div>
+```
+
+数组语法可以将多个样式对象应用到同一个元素上
+
+### 自动添加前缀
+
+当使用动态样式使用添加**浏览器引擎前缀**的CSS property时，如transform，Vue.js会自动侦测并添加响应的前缀。
+
+### 多重值
+
+从2.3.0起，`style`绑定中的property提供一个包含多个值的数组，常用于提供多个带前缀的值：
+
+```html
+<div :style="{ display: ['-webkit-box', '-ms-flexbox', 'flex'] }"></div>
+```
+
+这样写只会渲染数组中最后一个被浏览器支持值
+
+# 条件渲染
+
+## `v-if`
+
+它的意思在于条件性的渲染一块内容，这块内容只在指令表达式返回`truthy`值(真值)的时候被渲染
+
+```vue
+<template>
+    <div class="container">
+        <div v-if="isShow">vue</div>
+        <div v-else>look me</div>
+        <button @click="isShow = !isShow">change</button>
+    </div>
+</template>
+
+<script>
+export default {
+    components: {},
+    data() {
+        return {
+            isShow: true
+        }
+    },
+}
+</script>
+```
+
+上述代码，每次点击按钮都会显示不同的内容，`v-else`必须与`v-if`连用，当`v-if`为假值时，`v-else`就会渲染
+
+## v-else-if
+
+可以和v-if连用，tab切换时经常用到此属性
+
+## v-show
+
+此方法和`v-if`用法和作用都差不多，都是控制DOM元素的显示与隐藏
+
+## `v-if`  vs  `v-show`
+
+`v-if`是直接销毁DOM元素，重新渲染直接重建，而`v-show`是给DOM元素添加`display: none`属性，只是不显示该DOM元素，而不是销毁他们。
+
+## v-if与v-for一起使用
+
+当`v-if`与`v-for`一起使用时，`v-for`具有比`v-if`更高的优先级(在vue3中是`v-if`比`v-for`更高)
+
+# 列表渲染
+
+## 使用`v-for`把一个数组对应为一组元素
+
+```vue
+<template>
+    <div>
+        <ul>
+            <li v-for="item in items" :key="item.id">
+                {{ item.msg }}
+            </li>
+        </ul>
+    </div>
+</template>
+
+<script>
+export default {
+    components: {},
+    data() {
+        return {
+            items:[
+                {
+                    msg: 'msg1',
+                    id: 1
+                },
+                {
+                    msg: 'msg2',
+                    id: 2
+                }
+            ]
+        }
+    },
+}
+</script>
+```
+
+在`v-for`中，我们可以访问到所有父作用域中的property，`v-for`还支持第二个参数即当前项的索引 
+
+## 在`v-for`里使用对象
+
+可以用`v-for`来遍历一个对象property，可以接受三个参数，第一个参数是value，第二个参数是键名，第三个参数是对应的索引
+
+```vue
+<template>
+    <div>
+        <ul>
+            <li v-for="item,name,index in object">
+                {{ item }}:{{ name }}:{{ index }}
+            </li>
+        </ul>
+    </div>
+</template>
+
+<script>
+export default {
+    components: {},
+    data() {
+        return {
+            object: {
+                title: 'How to do lists in Vue',
+                author: 'Jane Doe',
+                publishedAt: '2016-04-10'
+            }
+        }
+    },
+}
+</script>
+
+<style scoped></style>
+
+```
+
+## 维护状态
+
+当使用vue中`v-for`进行列表渲染时，除非渲染内容非常简单，否则最好添加key属性，且key的值一定是唯一的，因为这能帮助浏览器更好的识别出每一个被渲染的DOM元素，从而提高性能。
+
+## 数据更新检测
+
+### 变更方法
+
+vue将被侦听的数组的变更方法进行了包裹，所以他们也将会触发视图更新。这些被包裹过的方法包括：
+
+- `push()`
+- `pop()`
+- `shift()`
+- `unshift()`
+- `splice()`
+- `sort()`
+- `reverse()`
+
+### 替换数组
+
+有变更方法就有非变更方法，例如`filter()`、`concat()`和`slice()`。它们不会变更数组，而总是返回一个新数组，当使用非变更方法时，可以用旧数组替换新数组。并且vue为了使得DOM元素得到最大范围的重用而实现了一些智能的启发式方法，所以用一个含有相同元素的数组去替换原来的数组是非常高效的操作。
+
+### 注意事项
+
+由于js的限制，vue不能检测数组和对象的变化
+
+## 在`v-for`中使用范围值
+
+`v-for`可以接受整数，并且会把模板重复对应次数
+
+```html
+<div>
+  <span v-for="n in 10">{{ n }} </span>
+</div>
+```
+
+## 在组件上使用`v-for`
+
+其实和在任何普通元素上使用一样，但是需要注意的是，在2.2.0+以及之后的版本，在组件上使用时必须绑定`key`属性
+
+# 事件处理
+
+## 监听事件
+
+可以用v-on来进行监听事件
+
+```vue
+<template>
+    <div>
+        {{ num }}
+        <button v-on:click="num++">num+1</button>
+    </div>
+</template>
+
+<script>
+export default {
+    components: {},
+    data() {
+        return {
+            num: 0,
+        }
+    }
+}
+</script>
+```
+
+## 事件处理方法
+
+许多事件的逻辑较为复杂，所以直接将js代码写在模板中是不现实的，因此`v-on`还可以接受一个需要调用方法的名称
+
+```vue
+<template>
+    <div>
+        {{ num }}
+        <button v-on:click="add">num+1</button>
+    </div>
+</template>
+
+<script>
+export default {
+    components: {},
+    data() {
+        return {
+            num: 0,
+        }
+    },
+    methods:{
+        add() {
+            this.num++;
+        }
+    }
+}
+</script>
+```
+
+## 内联处理器中的方法
+
+除了直接绑定方法，还可以在内联javaScript语句中调用方法
+
+```vue
+<template>
+    <div>
+        <button v-on:click="add(2)">math</button>
+        <button v-on:click="add(5)">math</button>
+    </div>
+</template>
+
+<script>
+export default {
+    methods:{
+        add(e) {
+            if(typeof e === 'number'){
+                alert(e++);
+            }
+        }
+    }
+}
+</script>
+```
+
+## 事件修饰符
+
+在事件处理程序中调用`event.preventDefault()`或`event.stopPropagation()`是非常常见的需求。尽管我们可以在方法中轻松实现这点，但更好的方式是方法只有纯粹的数据逻辑，而不是去处理DOM事件细节，所以vue提供了以下修饰符
+
+- `.stop`
+
+  阻止单击事件继续传播
+
+- `.prevent`
+
+  提交事件不再重载页面
+
+- `.capture`
+
+  内部元素触发的事件现在此处理，然后再交给内部元素进行处理
+
+- `.self`
+
+  事件不是从内部元素触发的
+
+- `.once`(2.1.4新增)
+
+  事件只会触发一次
+
+- .`passive`(2.3.0新增)
+
+  滚动的默认行为将会立即触发，不会等待`onScroll`完成，这其中包含event.preventDefault()的情况。此修饰符尤其能提升移动端的性能
+
+**注意**：修饰符可以连用，但要注意连用的顺序，并且`.passive`和`.prevent`不要一起使用，因为`.prevent`会被忽略且浏览器会展示一个警告
+
+## 按键修饰符
+
+vue还为我们提供了按键修饰符，比如一下代码在聚焦input框按下回车就会触发
+
+```html
+<input type="text" v-on:keyup.enter="add">
+```
+
+更多按键码可查看[vue官网](https://v2.cn.vuejs.org/v2/guide/events.html)
+
+## 系统修饰符
+
+vue2.1.0新增的。可以用下面的修饰符来实现仅在按下相应按键时才会触发鼠标或键盘事件的监听器
+
+- `.ctrl`
+- `.alt`
+- `.shift`
+- `.meta`
+
+### `.exact`修饰符
+
+vue2.5.0新增的，允许自己控制由精确的系统修饰符组合触发的事件，也就是直接绑定.ctrl，再它和alt以前下也会触发，加此属性，只有按下ctrl才会触发
+
+### 鼠标按钮修饰符
+
+vue2.2.0新增的
+
+- `.left`
+- `.right`
+- `.middle`
+
+这些修饰符会限制处理函数仅响应特定的鼠标按钮
+
+# 表单输入绑定
+
+## 基础用法
+
+vue中可以使用`v-model`来完成双向绑定，但是`v-modal`在内部为不同的输入元素使用不同的property并抛出不同的事件：
+
+- text和textarea元素使用value property和input事件
+- checkbox和radio使用checked property 和 change事件
+- select字段将value作为prop并将change作为事件
+
+## 修饰符
+
+### `.lazy`
+
+在默认情况下，`v-model`在每次input发生修改时都会进行同步修改，添加lazy修饰符之后，只有每次填写完成(就是失去焦点)时才会同步更新。
+
+```html
+<input type="text" v-model.lazy="message">
+```
+
+### `.number`
+
+如果想要用户的输入类型为number即可以给`v-model`添加number属性
+
+```html
+<input type="text" v-model.number="message">
+```
+
+### `.trim`
+
+如果要自动过滤掉前后的空白字符，可以给`v-model`添加`trim`修饰符
+
+```html
+<input type="text" v-model.trim="message">
+```
+
