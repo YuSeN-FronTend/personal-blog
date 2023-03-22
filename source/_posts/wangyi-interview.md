@@ -248,7 +248,7 @@ js继承方式分为六种：
     parent1.name = 'zouzhiheng';
     parent1.friends.push('AL');
     let parent2 = Object.create(parent);
-    parent2.push = 'sitansen';
+    parent2.name = 'sitansen';
     parent2.friends.push('B+');
     
     console.log(parent.name); // jufengze
@@ -799,6 +799,61 @@ WebSocket是一种**网络传输协议**，可在单个TCP连接上进行全双�
 http协议是只能客户端向服务端发送请求，然后服务端返回一个response，无法获取实时的信息传递。但是ajax轮询，long doll可以是http协议完成实时信息传递，但实现的原理就是频繁的发送请求。
 
 WebSocket只需要和服务端建立一次连接，然后客户端只要有数据，就会源源不断的推送过来。
+
+当在vue中使用webSocket时，要定义四个函数，`onmessage`，`onopen`，`onclose`，`onerror`，具体实现如以下代码
+
+```js
+export default {
+  data() {
+    return {
+      websock: null
+    }
+  },
+  created() {
+    this.initWebSocket();
+  },
+  destroyed() {
+    this.websock.close(); //离开路由之后断开websocket连接
+  },
+  methods: {
+    initWebSocket() {
+      // 初始化webSocket
+      const wsurl = 'ws://106.52.170.16:8090/getRealByWs';
+      // 建立webSocket实例
+      this.websock = new WebSocket(wsurl);
+      // 客户端接收服务端数据时触发
+      this.websock.onmessage = this.websocketonmessage;
+      // 连接建立时触发
+      this.websock.onopen = this.websocketonopen;
+      // 通信发生错误时触发
+      this.websock.onerror = this.websocketonerror;
+      // 连接关闭时触发
+      this.websock.onclose = this.websockclose;
+    },
+    // 连接建立时触发
+    websocketonopen() {
+      // 连接建立之后执行send方法发送数据
+      let token = '111'
+      this.websock.send(token)
+    },
+    // 通信发生错误时触发
+    websocketonerror() {
+      // 连接建立失败后重连
+      this.initWebSocket();
+    },
+    // 客户端接收服务端数据时触发
+    websocketonmessage(e) {
+      console.log(e);
+    },
+    // 连接关闭时触发
+    websockclose() {
+
+    }
+  }
+}
+```
+
+
 
 # 15、元素居中办法
 
