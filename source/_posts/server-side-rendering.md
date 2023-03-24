@@ -119,3 +119,98 @@ server.listen(3000, () => {
 ```
 
 最后执行`server.js`  然后访问`http://localhost:3000`就可以看到页面上的按钮了
+
+## 客户端激活
+
+按钮渲染出来但是并没有什么功能，这段代码完全是静态的。所以为了客户端应用可交互，vue需要一个激活步骤。在激活过程中，vue会创建一个与服务端完全相同的应用实例，然后将每个组件与它应该控制的DOM节点相匹配，并添加DOM事件监听器。
+
+### 代码结构
+
+我们将应用的创建逻辑拆分到一个单独的文件`app.js`中:
+
+```js
+// app.js (在服务器和客户端之间共享)
+import { createSSRApp } from "vue";
+
+export function createApp() {
+    return createSSRApp({
+        data: () => ({
+            count: 1
+        }),
+        template: `<button @click="count++">{{ count }}</button>`
+    })
+}
+```
+
+该文件及其依赖项在服务器和客户端之间共享——它们被称作**通用代码**，下面是其他文件的例子
+
+- `client.js`
+
+  ```js
+  import { createApp } from "./app.js";
+  
+  createApp().mount('#app')
+  ```
+
+- `server.js`
+
+  ```js
+  
+  // 引入express
+  import express from 'express';
+  // vue的服务端渲染API位于'vue/server-renderer'路径下
+  import { renderToString } from 'vue/server-renderer'
+  // 引入createApp
+  import { createApp } from './app.js';
+  const server = express();
+  server.get('/', (requset, response) => {
+      // 上面讲到的代码已经在app.js中封装完毕，直接引用即可
+      const app = createApp();
+      renderToString(app).then((html) => {
+          response.send(`
+              <!DOCTYPE html>
+              <html>
+                  <head>
+                      <title>Vue SSR Example</title>
+                    	// 添加import Map以支持在浏览器中使用 import * from 'vue'
+                      <script type="importmap">
+                          {
+                            "imports": {
+                                 "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
+                              }
+                          }
+                      </script>
+                      // 外部引入client.js文件
+                      <script type="module" src="./client.js"></script>
+                  </head>
+                  <body>
+                      <div id="app">${html}</div>
+                  </body>
+              </html>
+          `)
+      })
+  })
+  // 用于托管客户端文件
+  server.use(express.static('.'))
+  server.listen(3000, () => {
+      console.log('ready');
+  })
+  ```
+
+  继续执行 `node server.js`指令，访问`http://localhost:3000`，发现按钮可以点击自增了
+
+## 更通用的解决方案
+
+上面的简单例子到一个生产就虚的SSR应用还有很多工作，但是vue推荐使用更通用更集成化的解决方案，如下面例子：
+
+- `Nuxt`
+
+  这是一个构建与vue生态系统之上的全栈框架，它为vue SSR提供了丝滑的开发体验。更厉害的是，它还可以被当作一个静态站点生成器来用
+
+- `Quasar`
+
+  这是一个基于vue的完美解决方案，它可以用同一套代码库构建不同目标的应用，如SPA、SSR、PWA、移动端应用、桌面端应用以及浏览器插件。除此之外哦，它还提供了一套`Material Design`风格的组件库
+
+- Vite SSR
+
+  Vite提供了内置的Vue服务端渲染支持，但它的设计是偏底层的。使用这种方式只有在有丰富的SSR和构建工具经验，并希望对应用的架构做深入定制时才推荐使用。
