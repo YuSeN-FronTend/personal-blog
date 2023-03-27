@@ -29,7 +29,7 @@ console.log(m1.delete('c')); // 因为map数组中包含键值'c' 所以输出 t
 console.log(m1); // 输出 Map(2) { 'a' => 111, 'b' => 222 }
 ```
 
-<!-- more -->
+
 
 ### size
 

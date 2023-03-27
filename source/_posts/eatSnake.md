@@ -33,7 +33,7 @@ categories: typeScript
 
 小案例需要用到的插件。
 
-<!-- more -->
+
 
 ## 主要代码以及思路
 

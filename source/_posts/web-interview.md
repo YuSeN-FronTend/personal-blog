@@ -33,7 +33,7 @@ categories: 面试
           })
       </script>
   ```
-<!-- more -->
+
 - vue3
 
   ```js

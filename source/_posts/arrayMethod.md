@@ -33,7 +33,7 @@ console.log(arr, newArr);
 
 此方法是向数组前面添加一个元素。
 
-<!-- more -->
+
 
 ## 删
 

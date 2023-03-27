@@ -28,7 +28,7 @@ npm i -g typescript
 - 进入ts文件所在目录
 - 执行命令：tsc xxx.ts
 
-<!-- more -->
+
 
 ## 基本类型
 

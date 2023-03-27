@@ -18,7 +18,7 @@ HTTP是Hyper Text Transport Protocol的缩写，望文知意便是超文本传�
 
 总而言之，HTTP就是负责在客户端请求资源，在服务器端响应的协议。
 
-<!-- more -->
+
 
 # 三、与HTTP密切相关的其他协议
 
