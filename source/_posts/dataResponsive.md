@@ -1,7 +1,7 @@
 ---
 title: vue2数据响应式原理
 date: 2023-4-9 19:59
-categories: javaScript
+categories: vue
 ---
 
 # 数据劫持

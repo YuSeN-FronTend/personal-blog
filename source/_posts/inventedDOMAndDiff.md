@@ -1,7 +1,7 @@
 ---
 title: 虚拟DOM和diff算法学习
 date: 2023-4-7 11:19
-categories: javaScript
+categories: vue
 ---
 # 环境搭建
 

@@ -1,7 +1,7 @@
 ---
 title: mustache源码学习
 date: 2023-4-7 9:17
-categories: javaScript
+categories: vue
 ---
 
 # mustache模板引擎
