@@ -106,7 +106,7 @@ let str = '3[2[a]2[b]]';
 
 和上述堆方法实现类似
 
-- 建立parse.js
+- 创建parse.js
 
   ```js
   // parse函数， 主函数
@@ -162,6 +162,54 @@ let str = '3[2[a]2[b]]';
       }
       return stack2[0].children[0];
   }
+  ```
+
+- 创建parseAttrsString.js
+
+  此文件用于处理attrs属性，比如说class，id等这些属性
+
+  ```js
+  export default function parseAttrsString(attrsString) {
+      if(attrsString === undefined) return [];
+      // 判断当前是否在引号内
+      let isYinhao = false;
+      // 断点
+      let point = 0;
+      // 结果数组
+      let result = [];
+  
+      // 遍历attrsString, 而不是split()那种暴力方法
+      for(let i = 0; i < attrsString.length; i++) {
+          let char = attrsString[i];
+          if(char === '"') {
+              isYinhao = !isYinhao;
+          } else if(char === ' ' && !isYinhao) {
+              // 遇见了空格，并且不在引号中
+              if(!/^\s*$/.test(attrsString.substring(point, i))) {
+                  result.push(attrsString.substring(point, i).trim())
+                  point = i;
+              }
+          }
+      }
+      // 循环之后还剩最后一个属性也要进到数组
+      result.push(attrsString.substring(point).trim())
+  
+      result = result.map(item => {
+          // 根据等号拆分
+          const o = item.match(/^(.+)="(.+)"$/);
+          return {
+              name: o[1],
+              value: o[2]
+          }
+      })
+      return result
+  }
+  ```
+
+  在parse.js的25行左右还要做一个修改，并且引入上述文件中的函数
+
+  ```js
+  stack2.push({ 'tag': tag, 'children': [], 'attrs': parseAttrsString(attrsString)});
   ```
 
   
