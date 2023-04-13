@@ -103,7 +103,120 @@ const copyTree = function(r1,r2) {
 }
 ```
 
-## 顺时针打印矩阵
+## 从上到下打印二叉树(层序遍历)
+
+从上到下打印出二叉树的每个节点，同一层的节点按照从左到右的顺序打印。
+
+**示例**：
+
+- 给定二叉树: `[3,9,20,null,null,15,7]`   返回：`[3,9,20,15,7]`
+
+**思路**：
+
+定义一个结果空数组，再用一个queue数组将二叉树包裹起来，用queue的长度进行循环，弹出二叉树，将第一项添加到结果数组中，开始判断二叉树是否存在左子树和右子树，如果存在则添加到queue，让下一次循环时遍历下一层存在的子树，以此类推直至循环结束
+
+```js
+var levelOrder = function(root) {
+    let res = [];
+    if(!root) return res;
+
+    let queue = [root];
+
+    while(queue.length) {
+        let node = queue.shift();
+        res.push(node.val);
+        if(node.left) {
+            queue.push(node.left)
+        }
+        if(node.right) {
+            queue.push(node.right)
+        }
+    }
+    return res;
+};
+```
+
+## 从上到下打印二叉树Ⅱ(层序遍历扩展)
+
+从上到下按层打印二叉树，同一层的节点按从左到右的顺序打印，每一层打印到一行。
+
+**示例**：
+
+- 给定二叉树: `[3,9,20,null,null,15,7]`,  返回：`[ [3], [9,20], [15,7] ]`
+
+**思路**：
+
+也是层序遍历的思路，只不过需要新建两个数组，一个存放每一层的值，方便push到结果数组，一个存放每一层的值方便以后遍历
+
+```js
+var levelOrder = function(root) {
+    let res = [];
+    if(!root) return res;
+    let queue = [root];
+    while(queue.length) {
+        let resChild = [];
+        let level = [];
+        for(let i = 0; i < queue.length; i++) {
+            level.push(queue[i].val);
+            if(queue[i].left) {
+                resChild.push(queue[i].left);
+            }
+            if(queue[i].right) {
+                resChild.push(queue[i].right);
+            }
+        }
+        queue = resChild;
+        res.push(level);
+    }
+    return res;
+};
+```
+
+## 从上到下打印二叉树Ⅲ(层序遍历扩展)
+
+请实现一个函数按照之字形顺序打印二叉树，即第一行按照从左到右的顺序打印，第二层按照从右到左的顺序打印，第三行再按照从左到右的顺序打印，其他行以此类推。
+
+**示例**：
+
+- 给定二叉树: `[3,9,20,null,null,15,7]`,  返回：`[ [3], [9,20], [15,7] ]`
+
+**思路**：
+
+和上一个类似，做一个奇偶数识别，然后确定是unshift还是push
+
+```js
+var levelOrder = function(root) {
+    let res = [];
+    if(!root) return res;
+    let queue = [root];
+    let p = 1;
+    while(queue.length) {
+        let queueChild = [];
+        let level = [];
+        for(let i = 0; i < queue.length; i++) {
+            if(p % 2 !== 0) {
+                level.push(queue[i].val);
+            } else {
+                level.unshift(queue[i].val);
+            }
+            if(queue[i].left){
+                queueChild.push(queue[i].left);
+            }
+            if(queue[i].right) {
+                queueChild.push(queue[i].right)
+            }
+        }
+        p++;
+        queue = queueChild;
+        res.push(level)
+    }
+    return res;
+};
+```
+
+
+
+# 顺时针打印矩阵
 
 输入一个矩阵，按照从外向里以顺时针的顺序依次打印出每一个数字。
 
@@ -172,6 +285,8 @@ var spiralOrder = function(matrix) {
 };
 ```
 
+# 栈
+
 ## 包含min函数的栈
 
 定义栈的数据结构，请在该类型中实现一个能够得到栈的最小元素的 min 函数在该栈中，调用 min、push 及 pop 的时间复杂度都是 O(1)。
@@ -214,6 +329,34 @@ MinStack.prototype.top = function() {
 };
 MinStack.prototype.min = function() {
     return this._minStack.length > 0 ? this._minStack[this._minStack.length-1] : -1;
+};
+```
+
+## 栈的压入、弹出序列
+
+输入两个整数序列，第一个序列表示栈的压入顺序，请判断第二个序列是否为该栈的弹出顺序。假设压入栈的所有数字均不相等。例如，序列 {1,2,3,4,5} 是某栈的压栈序列，序列 {4,5,3,2,1} 是该压栈序列对应的一个弹出序列，但 {4,3,5,1,2} 就不可能是该压栈序列的弹出序列。
+
+**示例**：
+
+- 输入：pushed = [1,2,3,4,5], popped = [4,5,3,2,1]  输出：true
+- 输入：pushed = [1,2,3,4,5], popped = [4,3,5,1,2]  输出：false
+
+**思路**：
+
+创建一个栈，将pushed的数字依此推入栈中，用栈中的尾项和popped数组中的首项作比较，如若相同，栈中弹出一项，popped的比较项后移，直至循环结束，去检查栈中的长度是否为0
+
+```js
+var validateStackSequences = function(pushed, popped) {
+    let stack = [];
+    let j = 0;
+    for(let i = 0; i < pushed.length; i++) {
+        stack.push(pushed[i]);
+        while(stack.length && stack[stack.length - 1] === popped[j]) {
+            stack.pop();
+            j++;
+        }
+    }
+    return !stack.length;
 };
 ```
 
