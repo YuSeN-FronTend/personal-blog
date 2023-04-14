@@ -214,6 +214,81 @@ var levelOrder = function(root) {
 };
 ```
 
+## 二叉搜索树的后序遍历序列
+
+输入一个整数数组，判断该数组是不是某二叉搜索树的后序遍历结果。如果是则返回 `true`，否则返回 `false`。假设输入的数组的任意两个数字都互不相同。
+
+**示例**：
+
+- 输入: [1,6,3,2,5]  输出: false
+- 输入: [1,3,2,6,5]  输出: true
+
+**思路**：
+
+后序遍历的顺序是，左子树 --> 右子树 --> 根。二叉搜索树是，左子树节点值 < 根节点值 < 右子树节点值。所以只需要分离出左子树和右子树，然后递归遍历，不满足条件直接返回false即可。
+
+```js
+var verifyPostorder = function(postorder) {
+    if(postorder.length <= 2) return true;
+    let root = postorder.pop();
+    let i = 0;
+    while(postorder[i] < root) {
+        i++;
+    }
+
+    let rightTree = postorder.slice(i);
+
+    let resultArr = rightTree.every((item) => item > root);
+
+    return resultArr && verifyPostorder(postorder.slice(0, i)) && verifyPostorder(rightTree)
+};
+```
+
+## 二叉树中和为某一值的路径
+
+给你二叉树的根节点 root 和一个整数目标和 targetSum ，找出所有 从根节点到叶子节点 路径总和等于给定目标和的路径。叶子节点 是指没有子节点的节点。
+
+**示例**：
+
+- 输入：root = [5,4,8,11,null,13,4,7,2,null,null,5,1], targetSum = 22  输出：[[5,4,11,2],[5,8,4,5]]
+- 输入：root = [1,2,3], targetSum = 5 输出：[]
+- 输入：root = [1,2], targetSum = 0 输出：[]
+
+**思路**：
+
+通过递归依此遍历出每条路径，然后去比较每条路径上的值相加之和和目标值是否相等
+
+```js
+var pathSum = function(root, target) {
+    if(!root) return [];
+    let res = [];
+    let path = [root.val];
+    let handle = (node) => {
+        if(node.left) {
+            path.push(node.left.val);
+            handle(node.left);
+            path.pop();
+        }
+        if(node.right) {
+            path.push(node.right.val);
+            handle(node.right);
+            path.pop();
+        }
+        if(!node.left && !node.right) {
+            let add = 0;
+            for(let i = 0; i < path.length; i++) {
+                add += path[i];
+            }
+            if(add === target) {
+                res.push(path.slice());
+            }
+        }
+    }
+    handle(root);
+    return res;
+};
+```
+
 
 
 # 顺时针打印矩阵
