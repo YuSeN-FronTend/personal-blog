@@ -435,3 +435,83 @@ var validateStackSequences = function(pushed, popped) {
 };
 ```
 
+# 链表
+
+## 复杂链表的复制
+
+请实现 copyRandomList 函数，复制一个复杂链表。在复杂链表中，每个节点除了有一个 next 指针指向下一个节点，还有一个 random 指针指向链表中的任意节点或者 null。
+
+**示例**：
+
+- 输入：head = [[7,null],[13,0],[11,4],[10,2],[1,0]]  输出：[[7,null],[13,0],[11,4],[10,2],[1,0]]
+- 输入：head = [[1,1],[2,1]]  输出：[[1,1],[2,1]]
+- 输入：head = [[3,null],[3,0],[3,null]]   输出：[[3,null],[3,0],[3,null]]
+
+**思路**：
+
+新的链表节点用map存起来，通过引用地址找到random的节点
+
+```js
+var copyRandomList = function(head) {
+    if(!head) return null;
+    let cur = head;
+    let preHead = new Node();
+    let temp = preHead;
+    let map = new Map();
+    while(cur){
+        temp.val = cur.val;
+        temp.next = cur.next ? new Node() : null;
+        map.set(cur, temp);
+        temp = temp.next;
+        cur = cur.next;
+    }
+    temp = preHead;
+    while(head) {
+        temp.random = head.random ? map.get(head.random) : null;
+        temp = temp.next;
+        head = head.next;
+    }
+    return preHead;
+};
+```
+
+## 二叉搜索树与双向链表
+
+输入一棵二叉搜索树，将该二叉搜索树转换成一个排序的循环双向链表。要求不能创建任何新的节点，只能调整树中节点指针的指向。
+
+**示例**：
+
+- 输入：[4,2,5,1,3]   输出：[1,2,3,4,5]
+
+**思路**：
+
+使用中序遍历思路，根据左中右顺序递归，最后在结果出来之后，让头节点和尾节点相互指向
+
+```js
+var treeToDoublyList = function(root) {
+    if(!root) return null;
+    let prev = null;
+    let head = null;
+
+    let dfsHelper = function(root) {
+        if(!root) return null;
+
+        dfsHelper(root.left);
+
+        if(!head) {
+            head = new Node(root.val);
+            prev = head;
+        } else {
+            let newHead = new Node(root.val);
+            prev.right = newHead;
+            newHead.left = prev;
+            prev = newHead;
+        }
+        dfsHelper(root.right);
+    }
+    dfsHelper(root);
+    head.left = prev;
+    prev.right = head;
+    return head;
+};
+```
