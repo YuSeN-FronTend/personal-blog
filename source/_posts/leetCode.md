@@ -360,6 +360,75 @@ var spiralOrder = function(matrix) {
 };
 ```
 
+## 序列化二叉树
+
+请实现两个函数，分别用来序列化和反序列化二叉树。
+
+你需要设计一个算法来实现二叉树的序列化与反序列化。这里不限定你的序列 / 反序列化算法执行逻辑，你只需要保证一个二叉树可以被序列化为一个字符串并且将这个字符串反序列化为原始的树结构。
+
+**示例**：
+
+- 输入：root = [1,2,3,null,null,4,5]  输出：[1,2,3,null,null,4,5]
+
+**思路**：
+
+先把二叉树转化为字符串，再将字符串转换为二叉树
+
+```js
+var serialize = function(root) {
+    if(!root) return [];
+    let res = [];
+    let queue = [root];
+    while(queue.length) {
+        let node = queue.shift();
+        if(!node){
+            res.push(node);
+            continue;
+        }
+        res.push(node.val);
+        queue.push(node.left);
+        queue.push(node.right);
+    }
+    return res;
+};
+
+/**
+ * Decodes your encoded data to tree.
+ *
+ * @param {string} data
+ * @return {TreeNode}
+ */
+var deserialize = function(data) {
+    if(!data || !data.length) {
+        return null;
+    }
+    let root = new TreeNode(data[0]);
+    let queue = [root];
+    let i = 1;
+    while(i < data.length) {
+        let node = queue.shift();
+
+        if(i < data.length) {
+            if(data[i] !==null) {
+                node.left = new TreeNode(data[i]);
+                queue.push(node.left);
+            }
+            i++;
+        }
+        if(i < data.length) {
+            if(data[i] !== null) {
+                node.right = new TreeNode(data[i]);
+                queue.push(node.right);
+            }
+            i++;
+        }
+    }
+    return root;
+};
+```
+
+
+
 # 栈
 
 ## 包含min函数的栈
@@ -515,3 +584,45 @@ var treeToDoublyList = function(root) {
     return head;
 };
 ```
+
+# 回溯
+
+## 字符串的排列
+
+输入一个字符串，打印出该字符串中字符的所有排列。你可以以任意顺序返回这个字符串数组，但里面不能有重复元素。
+
+**示例**：
+
+- 输入：`s = "abc"`  输出：`["abc","acb","bac","bca","cab","cba"]`
+
+**思路**：
+
+利用回溯法逐层处理给定的字符串递归排列，因为case中有重复字符，需要用set去重
+
+```js
+var permutation = function (s) {
+    let res = new Set();
+    let path = [];
+    let visited = [];
+    dfsHelper([...s], path, res, visited);
+    return Array.from(res)
+};
+
+function dfsHelper(arr, path, res, visited) {
+    if(arr.length === path.length) {
+        res.add(path.join(''));
+        return;
+    }
+    for(let i = 0; i < arr.length; i++) {
+        if(visited[i]) {
+            continue;
+        }
+        visited[i] = true;
+        path.push(arr[i]);
+        dfsHelper(arr, path, res, visited);
+        path.pop();
+        visited[i] = false;
+    }
+}
+```
+
