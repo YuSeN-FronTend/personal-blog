@@ -626,3 +626,153 @@ function dfsHelper(arr, path, res, visited) {
 }
 ```
 
+# 其他
+
+## 数组中出现次数超过一半的数字
+
+数组中有一个数字出现的次数超过数组长度的一半，请找出这个数字。你可以假设数组是非空的，并且给定的数组总是存在多数元素。
+
+**示例**：
+
+- 输入: `[1, 2, 3, 2, 2, 2, 5, 4, 2]`   输出：2
+
+**思路**：
+
+我想到的思路有两个，一个是遍历数组，将每一项出现的次数包装成一个对象，最后再遍历对象取到相应的值。另一个就是因为目标数字出现的数字肯定大于数组长度的一般，那么排序数组之后的`nums[nums.length - 1]`项就是目标数字
+
+```js
+var majorityElement = function(nums) {
+    let obj = {};
+    let len = (nums.length) / 2;
+    for(let num of nums) {
+        obj[num] = obj[num] ? obj[num] + 1 : 1;
+    }
+    for(let key in obj) {
+        if(obj[key] > len) {
+           return key;
+        }
+    }
+};
+```
+
+```js
+var majorityElement = function(nums) {
+    return nums.sort((a,b) => a - b)[parseInt((nums.length -1)/2)];
+};
+```
+
+## 最小的k个数
+
+输入整数数组 `arr` ，找出其中最小的 `k` 个数。例如，输入4、5、1、6、2、7、3、8这8个数字，则最小的4个数字是1、2、3、4。
+
+**示例**：
+
+- 输入：arr = [3,2,1], k = 2   输出：[1,2] 或者 [2,1]
+- 输入：arr = [0,1,2,1], k = 1   输出：[0]
+
+**思路**：
+
+直接使用js的sort排序，然后截取前k项即可 
+
+```js
+var getLeastNumbers = function(arr, k) {
+    arr.sort((a,b) => a-b);
+    return arr.slice(0,k);
+};
+```
+
+## 数据流中的中位数
+
+如何得到一个数据流中的中位数？如果从数据流中读出奇数个数值，那么中位数就是所有数值排序之后位于中间的数值。如果从数据流中读出偶数个数值，那么中位数就是所有数值排序之后中间两个数的平均值。
+
+**示例**：
+
+- 输入：`["MedianFinder","addNum","addNum","findMedian","addNum","findMedian"]  [[],[1],[2],[],[3],[]]`
+
+  输出：`[null,null,null,1.50000,null,2.00000]`
+
+- 输入：`["MedianFinder","addNum","findMedian","addNum","findMedian"]   [[],[2],[],[3],[]]`
+
+  输出：`[null,null,2.00000,null,2.50000]`
+
+**思路**：
+
+定义一个数组来存放结果，需要给此数组进行排序，并且判断数组长度在奇偶不同的情况下的中位数求解方法
+
+```js
+var MedianFinder = function() {
+    this.math = []
+};
+
+MedianFinder.prototype.addNum = function(num) {
+    if(this.math.length === 0) {
+        this.math.push(num);
+    } else {
+        let i = this.math.length - 1;
+        while(i >= 0 && num < this.math[i]) {
+            i--;
+        }
+        this.math.splice(i + 1, 0, num)
+    }
+};
+
+MedianFinder.prototype.findMedian = function() {
+    let len = this.math.length;
+    if(this.math.length %2 === 0) {
+        return (this.math[len/2] + this.math[(len/2) - 1]) /2
+    } else {
+        return this.math[(len - 1) /2]
+    }
+};
+```
+
+## 数字序列中某一位数字
+
+数字以0123456789101112131415…的格式序列化到一个字符序列中。在这个序列中，第5位（从下标0开始计数）是5，第13位是1，第19位是4，等等。请写一个函数，求任意第n位对应的数字。
+
+**示例**：
+
+- 输入：n = 3   输出：3
+- 输入：n = 11   输出：0
+
+**思路**：先算出第n位为几位数，再算出目标数字，最后通过取余求出目标单个数字对应目标数字的第几位
+
+```js
+var findNthDigit = function(n) {
+    if(n < 10 && n >= 0) return n;
+    let start = 9;
+    let i = 1;
+    while(start < n){
+        i++;
+        start += Math.pow(10, i - 1) * 9 * i;
+    }
+
+    let diff_n = Math.floor((start - n) / i);
+    let diff_y = (start - n) % i;
+    return `${Math.pow(10, i) - 1 - diff_n}`.charAt(i - 1 -diff_y);
+};
+```
+
+# 动态规划
+
+输入一个整型数组，数组中的一个或连续多个整数组成一个子数组。求所有子数组的和的最大值。
+
+**示例**：
+
+- 输入: `nums = [-2,1,-3,4,-1,2,1,-5,4]`   输出: 6
+
+**思路**：
+
+让数组的每一项依次增加，如果被加数小于零，则加0以此类推，循环一次数组，即可得到答案
+
+```js
+var maxSubArray = function(nums) {
+    let max = nums[0];
+    for(let i = 1; i < nums.length; i++) {
+        nums[i] += Math.max(nums[i - 1], 0);
+        max = Math.max(nums[i], max);
+    }
+    return max;
+};
+```
+
