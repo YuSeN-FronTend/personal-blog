@@ -753,7 +753,36 @@ var findNthDigit = function(n) {
 };
 ```
 
+## 把数组排成最小的数
+
+输入一个非负整数数组，把数组里所有数字拼接起来排成一个数，打印能拼接出的所有数字中最小的一个。
+
+**示例**：
+
+- 输入: [10,2]   输出: "102"
+- 输入: [3,30,34,5,9]   输出: "3033459"
+
+**思路**：
+
+将数组排序，拼接两个数字去比较他们组合的大小直至比较完成
+
+```js
+var minNumber = function(nums) {
+    return nums.sort((a,b) => {
+        if(`${a}${b}` - `${b}${a}` > 0){
+            return 1;
+        } else {
+            return -1;
+        }
+    }).join('')
+};
+```
+
+
+
 # 动态规划
+
+## 连续子数组的最大和
 
 输入一个整型数组，数组中的一个或连续多个整数组成一个子数组。求所有子数组的和的最大值。
 
@@ -773,6 +802,102 @@ var maxSubArray = function(nums) {
         max = Math.max(nums[i], max);
     }
     return max;
+};
+```
+
+## 把数字翻译成字符串
+
+给定一个数字，我们按照如下规则把它翻译为字符串：0 翻译成 “a” ，1 翻译成 “b”，……，11 翻译成 “l”，……，25 翻译成 “z”。一个数字可能有多个翻译。请编程实现一个函数，用来计算一个数字有多少种不同的翻译方法。
+
+**示例**：
+
+- 输入: 12258   输出: 5
+
+**思路**：
+
+创建dp数组，利用动态规划思想进行叠加
+
+```js
+var translateNum = function(num) {
+    if(num < 10) {
+        return 1;
+    }
+    let str = num.toString();
+    let dp = [1,1];
+    for(let i = 1; i < str.length; i++) {
+        let tmp = parseInt(str.slice(i-1, i+1)) || 0;
+        if(tmp >= 10 && tmp <= 25){
+            dp[i+1] = dp[i-1] + dp[i];
+        } else {
+            dp[i+1] = dp[i];
+        }
+    }
+    return dp[dp.length-1]
+};
+```
+
+## 礼物的最大价值
+
+在一个 m*n 的棋盘的每一格都放有一个礼物，每个礼物都有一定的价值（价值大于 0）。你可以从棋盘的左上角开始拿格子里的礼物，并每次向右或者向下移动一格、直到到达棋盘的右下角。给定一个棋盘及其上面的礼物的价值，请计算你最多能拿到多少价值的礼物？
+
+**示例**：
+
+- 输入: [[1,3,1],[1,5,1],[4,2,1]]   输出: 12
+
+**思路**：
+
+循环并比较当前基点的相邻的两个数大小，并且依次累加，直至循环完成
+
+```js
+var maxValue = function (grid) {
+    if(grid.length ===0 && grid[0].length===0) return 0;
+    let rowLimit = grid.length;
+    let colLimit = grid[0].length;
+    for(let row = 0; row < rowLimit; row++) {
+        for(let col = 0; col < colLimit; col++) {
+            let left = col - 1 < 0 ? 0 : grid[row][col - 1];
+            let top = row - 1 < 0 ? 0 : grid[row - 1][col];
+
+            grid[row][col] += Math.max(left, top);
+        }
+    }
+    return grid[rowLimit - 1][colLimit - 1];
+};
+```
+
+## 最长不含重复字符的子字符串
+
+请从字符串中找出一个最长的不包含重复字符的子字符串，计算该最长子字符串的长度。
+
+**示例**：
+
+- 输入: `"abcabcbb"`   输出: 3
+- 输入: `"bbbbb"`   输出: 1
+- 输入: `"pwwkew"`   输出: 3
+
+**思路**：
+
+利用双指针思想，判断当前字符串是否在截取字符串中，如果存在，就获取截取字符串中当前字符串的索引，加上原索引再加1，二指针也要后移。如果
+
+不存在，则当前字符串和原来最长字符串最比较，返回最长的长度。
+
+```js
+var lengthOfLongestSubstring = function(s) {
+    if(!s.length) return 0;
+    let i = 0;
+    let j = 1;
+    let res = 1;
+    while(j < s.length) {
+        if(s.slice(i,j).includes(s[j])){
+            i += s.slice(i,j).indexOf(s[j]) + 1
+            j++;
+        } else {
+            j++;
+            res = Math.max(s.slice(i,j).length, res);
+        }
+    }
+    console.log(i,j)
+    return res;
 };
 ```
 
