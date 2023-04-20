@@ -28,8 +28,6 @@ console.log(stringValue.length);
 
 输出 **11**
 
-<!-- more-->
-
 ### charAt()
 
 js字符串由16位**码元(code unit)**组成对多数字符来说，每16个码元对应一个字符。此方法查找指定索引位置的16位码元。

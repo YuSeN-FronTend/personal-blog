@@ -585,6 +585,68 @@ var treeToDoublyList = function(root) {
 };
 ```
 
+## 两个链表的第一个公共节点
+
+输入两个链表，找出它们的第一个公共节点。
+
+**示例**：
+
+- 输入：`intersectVal = 8, listA = [4,1,8,4,5], listB = [5,0,1,8,4,5], skipA = 2, skipB = 3`   输出：`Reference of the node with value = 8`
+- 输入：`intersectVal = 2, listA = [0,9,1,2,4], listB = [3,2,4], skipA = 3, skipB = 1 `  输出：`Reference of the node with value = 2`
+- 输入：`intersectVal = 0, listA = [2,6,4], listB = [1,5], skipA = 3, skipB = 2`   输出：`null`
+
+**思路**：
+
+先计算两数组长度，算出差值让长的链表先移动，直至相同后再一起移动寻找相交链表
+
+```js
+var getIntersectionNode = function(headA, headB) {
+    let lenA = 0;
+    let lenB = 0;
+    let crrA = headA;
+    let crrB = headB;
+    let nextA;
+    let nextB;
+
+    while(crrA) {
+        lenA++;
+        nextA = crrA;
+        crrA = crrA.next;
+    }
+
+    while(crrB) {
+        lenB++;
+        nextB = crrB;
+        crrB = crrB.next;
+    }
+    if(nextA !== nextB) {
+        return null;
+    }
+    let len = lenA - lenB;
+
+    for(let i = 0; i < Math.abs(len); i++) {
+        if(len > 0){
+            headA = headA.next;
+        }
+
+        if(len < 0) {
+            headB = headB.next;
+        }
+    }
+
+    while(headA && headB) {
+        if(headA === headB) {
+            return headA
+        }
+        headA = headA.next;
+        headB = headB.next;
+    }
+    return null
+};
+```
+
+
+
 # 回溯
 
 ## 字符串的排列
@@ -625,6 +687,323 @@ function dfsHelper(arr, path, res, visited) {
     }
 }
 ```
+
+## 机器人的运动范围
+
+地上有一个m行n列的方格，从坐标 [0,0] 到坐标 [m-1,n-1] 。一个机器人从坐标 [0, 0] 的格子开始移动，它每次可以向左、右、上、下移动一格（不能移动到方格外），也不能进入行坐标和列坐标的数位之和大于k的格子。例如，当k为18时，机器人能够进入方格 [35, 37] ，因为3+5+3+7=18。但它不能进入方格 [35, 38]，因为3+5+3+8=19。请问该机器人能够到达多少个格子？
+
+**示例**：
+
+- 输入：m = 2, n = 3, k = 1   输出：3
+- 输入：m = 3, n = 1, k = 0   输出：1
+
+**思路**：
+
+创建一个数组visited来存放方格中的点是否已经遍历过，如果遍历过则不重复遍历。思想为顺着一行或一列一直走，如果遇到边界，则停止并回退，直到完全遍历完
+
+```js
+var movingCount = function (m, n, k) {
+    function dfs(i, j, m, n, k, visited) {
+        // 来判断是否移动到方格外或者已经走过当前点
+        if(i >= m || i < 0 || j >= n || j < 0 || visited[i][j]){
+            return;
+        }
+        // 没走过就给当前点标记为走过
+        visited[i][j] = true;
+        // 计算当前点行坐标和列坐标数位之和是否小于k
+        let sum = i % 10 + j % 10 + Math.floor(i / 10) + Math.floor(j / 10);
+        if(sum > k) {
+            return;
+        }
+        // 满足上述要求 走过的格数加一
+        res++;
+        // 行循环和列循环齐头并进
+        dfs(i + 1, j, m, n, k, visited);
+        dfs(i, j + 1, m, n, k, visited);
+    }
+
+    let res = 0;
+    // 创建标记是否走过的数组
+    let visited = new Array(m).fill(0).map(() => new Array(n));
+
+    dfs(0, 0, m, n, k, visited);
+    return res;
+};
+```
+
+# 动态规划
+
+## 连续子数组的最大和
+
+输入一个整型数组，数组中的一个或连续多个整数组成一个子数组。求所有子数组的和的最大值。
+
+**示例**：
+
+- 输入: `nums = [-2,1,-3,4,-1,2,1,-5,4]`   输出: 6
+
+**思路**：
+
+让数组的每一项依次增加，如果被加数小于零，则加0以此类推，循环一次数组，即可得到答案
+
+```js
+var maxSubArray = function(nums) {
+    let max = nums[0];
+    for(let i = 1; i < nums.length; i++) {
+        nums[i] += Math.max(nums[i - 1], 0);
+        max = Math.max(nums[i], max);
+    }
+    return max;
+};
+```
+
+## 把数字翻译成字符串
+
+给定一个数字，我们按照如下规则把它翻译为字符串：0 翻译成 “a” ，1 翻译成 “b”，……，11 翻译成 “l”，……，25 翻译成 “z”。一个数字可能有多个翻译。请编程实现一个函数，用来计算一个数字有多少种不同的翻译方法。
+
+**示例**：
+
+- 输入: 12258   输出: 5
+
+**思路**：
+
+创建dp数组，利用动态规划思想进行叠加
+
+```js
+var translateNum = function(num) {
+    if(num < 10) {
+        return 1;
+    }
+    let str = num.toString();
+    let dp = [1,1];
+    for(let i = 1; i < str.length; i++) {
+        let tmp = parseInt(str.slice(i-1, i+1)) || 0;
+        if(tmp >= 10 && tmp <= 25){
+            dp[i+1] = dp[i-1] + dp[i];
+        } else {
+            dp[i+1] = dp[i];
+        }
+    }
+    return dp[dp.length-1]
+};
+```
+
+## 礼物的最大价值
+
+在一个 m*n 的棋盘的每一格都放有一个礼物，每个礼物都有一定的价值（价值大于 0）。你可以从棋盘的左上角开始拿格子里的礼物，并每次向右或者向下移动一格、直到到达棋盘的右下角。给定一个棋盘及其上面的礼物的价值，请计算你最多能拿到多少价值的礼物？
+
+**示例**：
+
+- 输入: [[1,3,1],[1,5,1],[4,2,1]]   输出: 12
+
+**思路**：
+
+循环并比较当前基点的相邻的两个数大小，并且依次累加，直至循环完成
+
+```js
+var maxValue = function (grid) {
+    if(grid.length ===0 && grid[0].length===0) return 0;
+    let rowLimit = grid.length;
+    let colLimit = grid[0].length;
+    for(let row = 0; row < rowLimit; row++) {
+        for(let col = 0; col < colLimit; col++) {
+            let left = col - 1 < 0 ? 0 : grid[row][col - 1];
+            let top = row - 1 < 0 ? 0 : grid[row - 1][col];
+
+            grid[row][col] += Math.max(left, top);
+        }
+    }
+    return grid[rowLimit - 1][colLimit - 1];
+};
+```
+
+## 最长不含重复字符的子字符串
+
+请从字符串中找出一个最长的不包含重复字符的子字符串，计算该最长子字符串的长度。
+
+**示例**：
+
+- 输入: `"abcabcbb"`   输出: 3
+- 输入: `"bbbbb"`   输出: 1
+- 输入: `"pwwkew"`   输出: 3
+
+**思路**：
+
+利用双指针思想，判断当前字符串是否在截取字符串中，如果存在，就获取截取字符串中当前字符串的索引，加上原索引再加1，二指针也要后移。如果
+
+不存在，则当前字符串和原来最长字符串最比较，返回最长的长度。
+
+```js
+var lengthOfLongestSubstring = function(s) {
+    if(!s.length) return 0;
+    let i = 0;
+    let j = 1;
+    let res = 1;
+    while(j < s.length) {
+        if(s.slice(i,j).includes(s[j])){
+            i += s.slice(i,j).indexOf(s[j]) + 1
+            j++;
+        } else {
+            j++;
+            res = Math.max(s.slice(i,j).length, res);
+        }
+    }
+    console.log(i,j)
+    return res;
+};
+```
+
+## 丑数
+
+我们把只包含质因子 2、3 和 5 的数称作丑数（Ugly Number）。求按从小到大的顺序的第 n 个丑数。
+
+**示例**：
+
+- 输入: n = 10   输出: 12
+
+**思路**：
+
+创建一个数组里面只有1，在创建三个指针，我们把此题想象成矩阵，第一行2、3、5，第二行4、6、10，以此类推，这些数都是丑数，我们只需让三个索引代表第一行的分别三列，哪列值最小，就进入到下一行，即可获取答案。
+
+```js
+var nthUglyNumber = function(n) {
+    let dp = [1];
+    let a = 0;
+    let b = 0;
+    let c = 0;
+    for(let i = 1; i < n; i++) {
+        let am = dp[a] * 2;
+        let bm = dp[b] * 3;
+        let cm = dp[c] * 5;
+        dp[i] = Math.min(am,bm,cm);
+        if(dp[i] === am) a++;
+        if(dp[i] === bm) b++;
+        if(dp[i] === cm) c++;
+    }
+    return dp[n-1]
+};
+```
+
+# 哈希表
+
+## 第一个只出现一次的字符
+
+在字符串 s 中找出第一个只出现一次的字符。如果没有，返回一个单空格。 s 只包含小写字母。
+
+**示例**：
+
+- 输入：s = `"abaccdeff"`    输出：'b'
+- 输入：s = ""   输出：' '
+
+**思路**：
+
+利用哈希表存储思路，把出现过的字符都存为对象中的key，再次出现就使value加一，最后判断第一个只出现一次的字符。
+
+```js
+var firstUniqChar = function(s) {
+    if(!s.length) return " ";
+    let obj = {}
+    for(let i = 0; i < s.length; i++) {
+        if(!obj[s[i]]){
+            obj[s[i]] = 1;
+        } else {
+            obj[s[i]]++;
+        }
+    }
+
+    for(let key in obj){
+        if(obj[key] === 1) {
+            return key;
+        }
+    }
+    return " ";
+};
+```
+
+## 在排序数组中查找数字
+
+统计一个数字在排序数组中出现的次数。
+
+**示例**：
+
+- 输入: `nums = [5,7,7,8,8,10], target = 8`   输出: 2
+- 输入: `nums = [5,7,7,8,8,10], target = 6`   输出: 0
+
+**思路**：
+
+利用哈希表存储，把每个出现的数字存储到对象中并且添加次数
+
+```js
+var search = function(nums, target) {
+    let obj = {};
+    for(let i = 0; i < nums.length; i++) {
+        if(!obj[nums[i]]){
+            obj[nums[i]] = 1
+        } else {
+            obj[nums[i]]++;
+        }
+    }
+ 
+   for(let key in obj){
+       if(key == target) {
+           return obj[key]
+       }
+   }
+   return 0;
+};
+```
+
+
+
+# 归并排序
+
+在数组中的两个数字，如果前面一个数字大于后面的数字，则这两个数字组成一个逆序对。输入一个数组，求出这个数组中的逆序对的总数。
+
+**示例**：
+
+- 输入: [7,5,6,4]   输出: 5
+
+**思路**：
+
+将数组对半拆分，递归拆分成两个长度为1的数组，如果前数组大于后数组，则使结果长度加1并且左侧数组长度加一并添加到新数组，如果不大于则添加到新数组里面，如果左右数组指针大于等于数组长度，则直接使另一侧添加到新数组并且加1，往复循环直至递归完成
+
+```js
+var reversePairs = function(nums) {
+    let sum = 0;
+    mergeSort(nums);
+    return sum;
+
+    function mergeSort(nums) {
+        if(nums.length < 2) return nums;
+        let mid = parseInt(nums.length/2);
+        let leftArr = nums.slice(0, mid);
+        let rightArr = nums.slice(mid);
+        return merge(mergeSort(leftArr), mergeSort(rightArr));
+    }
+
+    function merge(left, right) {
+        let res = [];
+        let leftLen = left.length;
+        let rightLen = right.length;
+        let len = leftLen + rightLen;
+
+        for(let index = 0, i = 0, j = 0; index < len; index++) {
+            if(i >= leftLen) {
+                res[index] = right[j++];
+            } else if(j >= rightLen) {
+                res[index] = left[i++];
+            } else if(left[i] <= right[j]) {
+                res[index] = left[i++]
+            } else {
+                res[index] = right[j++];
+                sum += leftLen - i;
+            }
+        } 
+        return res;
+    }
+};
+```
+
+
 
 # 其他
 
@@ -779,125 +1158,4 @@ var minNumber = function(nums) {
 ```
 
 
-
-# 动态规划
-
-## 连续子数组的最大和
-
-输入一个整型数组，数组中的一个或连续多个整数组成一个子数组。求所有子数组的和的最大值。
-
-**示例**：
-
-- 输入: `nums = [-2,1,-3,4,-1,2,1,-5,4]`   输出: 6
-
-**思路**：
-
-让数组的每一项依次增加，如果被加数小于零，则加0以此类推，循环一次数组，即可得到答案
-
-```js
-var maxSubArray = function(nums) {
-    let max = nums[0];
-    for(let i = 1; i < nums.length; i++) {
-        nums[i] += Math.max(nums[i - 1], 0);
-        max = Math.max(nums[i], max);
-    }
-    return max;
-};
-```
-
-## 把数字翻译成字符串
-
-给定一个数字，我们按照如下规则把它翻译为字符串：0 翻译成 “a” ，1 翻译成 “b”，……，11 翻译成 “l”，……，25 翻译成 “z”。一个数字可能有多个翻译。请编程实现一个函数，用来计算一个数字有多少种不同的翻译方法。
-
-**示例**：
-
-- 输入: 12258   输出: 5
-
-**思路**：
-
-创建dp数组，利用动态规划思想进行叠加
-
-```js
-var translateNum = function(num) {
-    if(num < 10) {
-        return 1;
-    }
-    let str = num.toString();
-    let dp = [1,1];
-    for(let i = 1; i < str.length; i++) {
-        let tmp = parseInt(str.slice(i-1, i+1)) || 0;
-        if(tmp >= 10 && tmp <= 25){
-            dp[i+1] = dp[i-1] + dp[i];
-        } else {
-            dp[i+1] = dp[i];
-        }
-    }
-    return dp[dp.length-1]
-};
-```
-
-## 礼物的最大价值
-
-在一个 m*n 的棋盘的每一格都放有一个礼物，每个礼物都有一定的价值（价值大于 0）。你可以从棋盘的左上角开始拿格子里的礼物，并每次向右或者向下移动一格、直到到达棋盘的右下角。给定一个棋盘及其上面的礼物的价值，请计算你最多能拿到多少价值的礼物？
-
-**示例**：
-
-- 输入: [[1,3,1],[1,5,1],[4,2,1]]   输出: 12
-
-**思路**：
-
-循环并比较当前基点的相邻的两个数大小，并且依次累加，直至循环完成
-
-```js
-var maxValue = function (grid) {
-    if(grid.length ===0 && grid[0].length===0) return 0;
-    let rowLimit = grid.length;
-    let colLimit = grid[0].length;
-    for(let row = 0; row < rowLimit; row++) {
-        for(let col = 0; col < colLimit; col++) {
-            let left = col - 1 < 0 ? 0 : grid[row][col - 1];
-            let top = row - 1 < 0 ? 0 : grid[row - 1][col];
-
-            grid[row][col] += Math.max(left, top);
-        }
-    }
-    return grid[rowLimit - 1][colLimit - 1];
-};
-```
-
-## 最长不含重复字符的子字符串
-
-请从字符串中找出一个最长的不包含重复字符的子字符串，计算该最长子字符串的长度。
-
-**示例**：
-
-- 输入: `"abcabcbb"`   输出: 3
-- 输入: `"bbbbb"`   输出: 1
-- 输入: `"pwwkew"`   输出: 3
-
-**思路**：
-
-利用双指针思想，判断当前字符串是否在截取字符串中，如果存在，就获取截取字符串中当前字符串的索引，加上原索引再加1，二指针也要后移。如果
-
-不存在，则当前字符串和原来最长字符串最比较，返回最长的长度。
-
-```js
-var lengthOfLongestSubstring = function(s) {
-    if(!s.length) return 0;
-    let i = 0;
-    let j = 1;
-    let res = 1;
-    while(j < s.length) {
-        if(s.slice(i,j).includes(s[j])){
-            i += s.slice(i,j).indexOf(s[j]) + 1
-            j++;
-        } else {
-            j++;
-            res = Math.max(s.slice(i,j).length, res);
-        }
-    }
-    console.log(i,j)
-    return res;
-};
-```
 
