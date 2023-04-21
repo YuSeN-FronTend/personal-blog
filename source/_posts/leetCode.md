@@ -289,7 +289,99 @@ var pathSum = function(root, target) {
 };
 ```
 
+## 二叉搜索树的第k大节点(中序遍历)
 
+给定一棵二叉搜索树，请找出其中第 `k` 大的节点的值。
+
+**示例**：
+
+- 输入: `root = [3,1,4,null,2], k = 1`   输出: 4
+- 输入: `root = [5,3,6,2,4,null,null,1], k = 3`   输出: 4
+
+**思路**：
+
+利用中序遍历处理二叉树，再反转数组，取得第k大的值
+
+```js
+var kthLargest = function(root, k) {
+    let roots = []
+    function middle(root) {
+        if(root == null) return;
+        middle(root.left);
+        roots.push(root.val);
+        middle(root.right)
+    }
+    middle(root);
+    roots.reverse();
+    return roots[--k];
+};
+```
+
+## 二叉树的深度
+
+输入一棵二叉树的根节点，求该树的深度。从根节点到叶节点依次经过的节点（含根、叶节点）形成树的一条路径，最长路径的长度为树的深度。
+
+**示例**：
+
+- 给定二叉树 `[3,9,20,null,null,15,7]`，  返回它的最大深度 3 。
+
+**思路**：
+
+一个是层序遍历，遍历一层使结果数字加一，返回即可。一个是深度优先搜索，循环遍历直至不存在左子树或右子树返回即可
+
+```js
+// 层序遍历
+var maxDepth = function(root) {
+    let num = 0;
+    let queue = [root]
+    while(queue.length) {
+        let resChild = [];
+        for(let i = 0; i < queue.length; i++){
+            if(queue[i].left) {
+                resChild.push(queue[i].left);
+            }
+            if(queue[i].right) {
+                resChild.push(queue[i].right)
+            }
+        }
+        queue = resChild;
+        num++;
+    }
+    return num;
+};
+```
+
+```js
+// DFS深度优先搜索
+var maxDepth = function(root) {
+    if(!root) return 0;
+    return Math.max(maxDepth(root.left), maxDepth(root.right))+1
+};
+```
+
+## 平衡二叉树
+
+输入一棵二叉树的根节点，判断该树是不是平衡二叉树。如果某二叉树中任意节点的左右子树的深度相差不超过1，那么它就是一棵平衡二叉树。
+
+**示例**：
+
+- 给定二叉树 `[3,9,20,null,null,15,7] `  返回 `true` 。
+- 给定二叉树 `[1,2,2,3,3,null,null,4,4]`   返回 `false` 。
+
+**思路**：
+
+先用写一个dfs算法方法，然后遍历二叉树的左右节点并算出同一节点左右子树的深度差
+
+```js
+var isBalanced = function(root) {
+    function max(root) {
+        if(!root) return 0;
+        return Math.max(max(root.left),max(root.right))+1;
+    }
+    if(!root) return true;
+    return isBalanced(root.left) && isBalanced(root.right) && Math.abs(max(root.left) - max(root.right))<=1;
+};
+```
 
 # 顺时针打印矩阵
 
@@ -956,6 +1048,8 @@ var search = function(nums, target) {
 
 # 归并排序
 
+## 数组中的逆序对
+
 在数组中的两个数字，如果前面一个数字大于后面的数字，则这两个数字组成一个逆序对。输入一个数组，求出这个数组中的逆序对的总数。
 
 **示例**：
@@ -1000,6 +1094,38 @@ var reversePairs = function(nums) {
         } 
         return res;
     }
+};
+```
+
+## 0~n-1中缺失的数字
+
+一个长度为n-1的递增排序数组中的所有数字都是唯一的，并且每个数字都在范围0～n-1之内。在范围0～n-1内的n个数字中有且只有一个数字不在该数组中，请找出这个数字。
+
+**示例**：
+
+- 输入: [0,1,3]   输出: 2
+- 输入: [0,1,2,3,4,5,6,7,9]   输出: 8
+
+**思路**：
+
+定义头尾指针，检测前半段数组和后半段数组那个符合要求，不符合的就直接移动指针砍掉，循环至找到答案
+
+```js
+var missingNumber = function(nums) {
+    if(nums[nums.length - 1] === nums.length-1) {
+        return nums.length;
+    }
+
+    let start = 0, end = nums.length -1, mid;
+    while(start <= end) {
+        mid = start + Math.floor((end - start)/2);
+        if(nums[mid] === mid) {
+            start = mid + 1
+        } else {
+            end = mid - 1;
+        }
+    }
+    return start;
 };
 ```
 
@@ -1157,5 +1283,228 @@ var minNumber = function(nums) {
 };
 ```
 
+## 数组中数字出现的次数
 
+一个整型数组 `nums` 里除两个数字之外，其他数字都出现了两次。请写程序找出这两个只出现一次的数字。要求时间复杂度是O(n)，空间复杂度是O(1)。
+
+**示例**：
+
+- 输入：`nums = [4,1,4,6]`   输出：`[1,6] 或 [6,1]`
+- 输入：`nums = [1,2,10,4,1,4,3,3]`   输出：`[2,10] 或 [10,2]`
+
+**思路**：
+
+本题有两种思路，第一种是排序后将数字两两比较，最后得出答案。第二种是位运算，利用异或来解决问题。
+
+```js
+//排序
+var singleNumbers = function(nums) {
+    let result = [];
+    nums.sort((a,b) => {
+        return a-b;
+    })
+    for(let i = 0; i < nums.length; i++) {
+        if(nums[i] === nums[i+1]) {
+            i++;
+        } else {
+            result.push(nums[i]);
+            if(result.length === 2){
+                return result;
+            }
+        }
+    }
+};
+```
+
+```js
+// 位运算
+var singleNumbers = function(nums) {
+    let res = 0;
+    for(let n of nums) {
+        res ^= n;
+    }
+    let div = 1;
+    while((div&res) === 0){
+        div <<= 1
+    }
+    let a = 0, b = 0;
+    for(let n of nums) {
+        if(div & n) {
+            a ^= n;
+        } else {
+            b ^= n;
+        }
+    }
+    return [a,b];
+};
+```
+
+## 数组中数字出现的次数Ⅱ
+
+在一个数组 `nums` 中除一个数字只出现一次之外，其他数字都出现了三次。请找出那个只出现一次的数字。
+
+**示例**：
+
+- 输入：`nums = [3,4,3,3]`   输出：4
+- 输入：`nums = [9,1,7,9,7,9,7]`   输出：1
+
+**思路**：
+
+遍历32位数，与原数组元素作比较。
+
+```js
+var singleNumber = function(nums) {
+    let res = 0;
+    for(let i = 0; i < 32; i++) {
+        let bit = 1 << i;
+        let cut = 0;
+        for(let j = 0; j < nums.length; j++) {
+            if(bit & nums[j]) {
+                cut++
+            }
+        }
+        if(cut % 3 !== 0){
+            res = res | bit;
+        }
+    }
+    return res;
+};
+```
+
+## 和为s的两个数字
+
+输入一个递增排序的数组和一个数字s，在数组中查找两个数，使得它们的和正好是s。如果有多对数字的和等于s，则输出任意一对即可。
+
+**示例**：
+
+- 输入：`nums = [2,7,11,15], target = 9`   输出：`[2,7] 或者 [7,2]`
+
+- 输入：`nums = [10,26,30,31,47,60], target = 40`   输出：`[10,30] 或者 [30,10]`
+
+**思路**：
+
+定义两个指针，头尾相加和目标值比较移动指针即可。
+
+```js
+var twoSum = function(nums, target) {
+    if(nums.length !== 2) {
+        let n = 0;
+        let p = nums.length - 1;
+        while(n < p){
+            if(nums[n] + nums[p] > target){
+                p--;
+            } else if(nums[n] + nums[p] < target){
+                n++;
+            } else {
+                return [nums[n], nums[p]];
+            }
+        }
+    } else {
+        return nums;
+    }
+};
+```
+
+## 和为s的连续正数序列
+
+输入一个正整数 target ，输出所有和为 target 的连续正整数序列（至少含有两个数）。序列内的数字由小到大排列，不同序列按照首个数字从小到大排列。
+
+**示例**：
+
+- 输入：target = 9   输出：[[2,3,4],[4,5]]
+- 输入：target = 15   输出：[[1,2,3,4,5],[4,5,6],[7,8]]
+
+**思路**：
+
+循环目标数字的一半加一次数，声明一个窗口数组用来保存结果，最后用到深拷贝完成添加进结果数组操作
+
+```js
+var findContinuousSequence = function(target) {
+    let sum = 1;
+    let list = [1];
+    let result = [];
+    for(let i = 2; i <= Math.ceil(target/2); i++) {
+        sum += i;
+        list.push(i);
+        while(sum > target) {
+            sum -= list.shift();
+        }
+        if(target === sum) {
+            result.push(list.slice(0))
+        }
+    }
+    return result
+};
+```
+
+## 翻转单词顺序
+
+输入一个英文句子，翻转句子中单词的顺序，但单词内字符的顺序不变。为简单起见，标点符号和普通字母一样处理。例如输入字符串"I am a student. "，则输出"student. a am I"。
+
+**示例**：
+
+- 输入: "the sky is blue"   输出: "blue is sky the"
+- 输入: "  hello world!  "   输出: "world! hello"
+- 输入: "a good   example"   输出: "example good a"
+
+**思路**：
+
+按照js语言特性，先用replace方法将单词间多余的空格都变为一个空格，然后用trim方法清除首尾空格，再使用split方法将字符串转换为数组，使用数组的reverse方法反转数组，最后再用join方法拼接成字符串
+
+```js
+var reverseWords = function(s) {
+    return s.replace(/\s+/g, ' ').trim().split(' ').reverse().join(' ')
+};
+```
+
+## 左旋转字符串
+
+字符串的左旋转操作是把字符串前面的若干个字符转移到字符串的尾部。请定义一个函数实现字符串左旋转操作的功能。比如，输入字符串"abcdefg"和数字2，该函数将返回左旋转两位得到的结果"cdefgab"。
+
+**示例**：
+
+- 输入: `s = "abcdefg", k = 2`   输出: `"cdefgab"`
+- 输入: `s = "lrloseumgh", k = 6`   输出: `"umghlrlose"`
+
+**思路**：
+
+截取字符串而后拼接
+
+```js
+var reverseLeftWords = function(s, n) {
+    return s.slice(n) + s.slice(0,n); 
+};
+```
+
+## 滑动窗口最大值
+
+给定一个数组 `nums` 和滑动窗口的大小 `k`，请找出所有滑动窗口里的最大值。
+
+**示例**：
+
+- 输入: `nums = [1,3,-1,-3,5,3,6,7], 和 k = 3`   输出: `[3,3,5,5,6,7]` 
+
+**思路**：
+
+使用queue存放队列，向里面添加nums的索引，用两个while分别做超出长度的判断和最大值判断，最后添加至数组中
+
+```js
+var maxSlidingWindow = function (nums, k) {
+    let res = [];
+    let queue = [];
+
+    for(let i = 0; i < nums.length; i++) {
+        // 超出长度则弹出元素
+        while(queue.length && queue[0] <= i - k) queue.shift();
+        // 进来的元素 >= 队尾元素，就要弹出，因为它们永远不是答案
+        while(queue.length && nums[queue[queue.length - 1]] <= nums[i]) queue.pop()
+        
+        queue.push(i);
+        if(i >= k - 1) {
+            res.push(nums[queue[0]]);
+        }
+    }
+    return res;
+};
+```
 
