@@ -248,3 +248,76 @@ MyPlugin.install = function(Vue, options = {}) {
 }
 ```
 
+# v-permission属性如何使用
+
+- 在src文件夹下创建directives文件夹
+
+- 在directives文件夹下创建permission.js来实现指令作用
+
+  ```js
+  export default {
+      // 接入两个参数，使用此指令的元素和内置属性
+      inserted(el, bindling){
+          // 如果有内置属性
+          if(bindling.name){
+              let per = ['add', 'delete']
+              // 寻找绑定的指令是否存在权限
+              let perb = per.some(item => {
+                  return item === bindling.value;
+              })
+              // 如果没有则隐藏该属性
+              if(!perb) {
+                  el.style.display = 'none'
+              }
+          }
+      }
+  }
+  ```
+
+- 在directives文件夹下创建index.js来集成所有指令并注册自定义指令
+
+  ```js
+  import permission from '@/directives/permission'
+  
+  // 创建自定义指令对象
+  const directives = {
+      permission
+  }
+  
+  export default {
+      install(Vue) {
+          // 遍历所有指令对象并注册
+          Object.keys(directives).forEach((key) => {
+              // 注册自定义指令
+              Vue.directive(key, directives[key])
+          })
+      }
+  }
+  ```
+
+- 最后在main.js中添加引用文件代码
+
+  ```js
+  import Directive from './directives/index'
+  Vue.use(Directive);
+  ```
+
+至此就可以在模板中使用v-permission指令了
+
+# vue中部分指令之间的区别
+
+## v-model和:value的区别
+
+两者在给表单类赋值时都可以实现双向绑定，但是v-model里面不可以加入表达式，只可以绑定一个值，但:value可以绑定表达式比如`:value="count += 1"`
+
+## v-model和v-bind的区别
+
+- v-model是双向绑定，数据可以从data流向页面，也可以从页面流向data
+- v-bind是单向绑定，用来绑定数据和属性或者表达式，但是只能从data流向页面
+
+v-bind可以给任何属性赋值，而v-model只能给表单类属性赋值，如input，radio，checkbox，selected等，因为v-model就是要捕获用户选择或者填写的value值
+
+## v-if和v-show的区别
+
+- v-if会直接将值为false的dom元素从模板中删除，更新的时候需要重新渲染页面，并且还可以v-else-if这种多判断，但是结尾必须要有v-else
+- v-show只是将dom元素添加display: none;属性，更新的时候不会重新渲染页面
