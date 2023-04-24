@@ -596,6 +596,52 @@ var validateStackSequences = function(pushed, popped) {
 };
 ```
 
+# 队列
+
+## 队列的最大值
+
+请定义一个队列并实现函数 max_value 得到队列里的最大值，要求函数max_value、push_back 和 pop_front 的均摊时间复杂度都是O(1)。若队列为空，pop_front 和 max_value 需要返回 -1
+
+**示例**：
+
+- 输入: ["MaxQueue","push_back","push_back","max_value","pop_front","max_value"]  [[],[1],[2],[],[],[]]   输出: [null,null,null,2,1,2]
+- 输入: ["MaxQueue","pop_front","max_value"]   [[],[],[]]   输出: [null,-1,-1]
+
+**思路**：
+
+队列先进先出，所以出队列要shift，定义stack数组当作队列，遍历数组取得最大值返回，并且和弹队列都要识别是否队列为空返回-1的情况
+
+```js
+var MaxQueue = function() {
+    this.stack = [];
+};
+MaxQueue.prototype.max_value = function() {
+    let sum = 0;
+     if(!this.stack.length) {
+         return -1;
+     } else {
+         this.stack.forEach((item) => {
+             sum = sum >= item ? sum : item;
+         })
+     }
+     return sum;
+};
+MaxQueue.prototype.push_back = function(value) {
+    this.stack.push(value)
+};
+MaxQueue.prototype.pop_front = function() {
+    let num = 0;
+    if(!this.stack.length) {
+        return -1;
+    } else {
+        num = this.stack.shift();
+    }
+    return num;
+};
+```
+
+
+
 # 链表
 
 ## 复杂链表的复制
@@ -974,6 +1020,46 @@ var nthUglyNumber = function(n) {
     return dp[n-1]
 };
 ```
+
+## n个骰子的点数
+
+把n个骰子扔在地上，所有骰子朝上一面的点数之和为s。输入n，打印出s的所有可能的值出现的概率。
+
+你需要用一个浮点数数组返回答案，其中第 i 个元素代表这 n 个骰子所能掷出的点数集合中第 i 小的那个的概率。
+
+**示例**： 
+
+- 输入: 1  输出: [0.16667,0.16667,0.16667,0.16667,0.16667,0.16667]
+- 输入: 2  输出: [0.02778,0.05556,0.08333,0.11111,0.13889,0.16667,0.13889,0.11111,0.08333,0.05556,0.02778]
+
+**思路**：
+
+创建一个二维数组取得到值，先初始化数组，再遍历得到每个骰子摇出对应和的次数，最后算出比例返回结果
+
+```js
+var dicesProbability = function(n) {
+    let dp = new Array(n+1).fill().map(() => new Array(n*6 + 1).fill(0));
+    let result = [];
+    for(let i = 1; i <= 6; i++) {
+        dp[1][i] = 1;
+    }
+    for(let i = 2; i <= n; i++){
+        for(let j = i; j <= 6*i; j++) {
+            for(let cur = 1; cur <= 6; cur++){
+                if(j <= cur) break;
+                dp[i][j] += dp[i-1][j-cur]
+            }
+        }
+    }
+    let all = Math.pow(6,n);
+    for(let i = n; i <= n*6; i++) {
+        result.push(parseFloat((dp[n][i] / all).toFixed(5)))
+    }
+    return result;
+};
+```
+
+
 
 # 哈希表
 
@@ -1505,6 +1591,71 @@ var maxSlidingWindow = function (nums, k) {
         }
     }
     return res;
+};
+```
+
+## 扑克牌中的顺子
+
+从若干副扑克牌中随机抽 5 张牌，判断是不是一个顺子，即这5张牌是不是连续的。2～10为数字本身，A为1，J为11，Q为12，K为13，而大、小王为 0 ，可以看成任意数字。A 不能视为 14。
+
+**示例**：
+
+- 输入: [1,2,3,4,5]   输出: true
+- 输入: [0,0,1,2,5]   输出: true
+
+**思路**：
+
+先判断数组中是否存在0，不存在则判断数组中前后项插值是否为1，存在零就剔除0元素，给剩余数组排序，判断数组中那两项差不为1向当前位置插入值，最后再判断前后项插值是否为1
+
+```js
+var isStraight = function(nums) {
+    let p = 0;
+    function correctfun(nums) {
+        for(let i = 1; i < nums.length; i++) {
+            if(nums[i] !== nums[i-1] + 1){
+                return false;
+            }
+        }
+        return true;
+    }
+    if(!nums.includes(0)){
+        return correctfun(nums)
+    } else {
+        while(nums.includes(0)){
+            nums.splice(nums.indexOf(0), 1);
+        }
+        nums.sort((a,b) => a-b)
+        while(nums.length < 5) {
+            if(nums[p] + 1 !== nums[p+1]){
+                nums.splice(p+1,0,nums[p] + 1)
+            }
+            p++;
+        }
+        return correctfun(nums);
+    }
+};
+```
+
+## 圆圈中最后剩下的数字
+
+0,1,···,n-1这n个数字排成一个圆圈，从数字0开始，每次从这个圆圈里删除第m个数字（删除后从下一个数字开始计数）。求出这个圆圈里剩下的最后一个数字。
+
+**示例**：
+
+- 输入: n = 5, m = 3  输出: 3
+- 输入: n = 10, m = 17  输出: 2
+
+**思路**：
+
+按照数学公式和迭代法完成
+
+```js
+var lastRemaining = function(n, m) {
+    let f = 0;
+    for(let i = 2; i != n+1;i++) {
+        f = (m+f)%i;
+    }
+    return f;
 };
 ```
 
