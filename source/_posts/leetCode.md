@@ -383,6 +383,32 @@ var isBalanced = function(root) {
 };
 ```
 
+## 二叉搜索树的最近公共祖先
+
+给定一个二叉搜索树, 找到该树中两个指定节点的最近公共祖先。
+
+**示例**：
+
+- 输入: root = [6,2,8,0,4,7,9,null,null,3,5], p = 2, q = 8   输出: 6 
+- 输入: root = [6,2,8,0,4,7,9,null,null,3,5], p = 2, q = 4   输出: 2
+
+**思路**：
+
+递归判断即可
+
+```js
+var lowestCommonAncestor = function(root, p, q) {
+    if(!root || root === p || root === q) return root;
+    if(p.val < root.val && q.val < root.val) {
+        return lowestCommonAncestor(root.left, p, q);
+    } else if(p.val>root.val && q.val > root.val) {
+        return lowestCommonAncestor(root.right, p, q);
+    } else {
+        return root
+    }
+};
+```
+
 # 顺时针打印矩阵
 
 输入一个矩阵，按照从外向里以顺时针的顺序依次打印出每一个数字。
@@ -1656,6 +1682,148 @@ var lastRemaining = function(n, m) {
         f = (m+f)%i;
     }
     return f;
+};
+```
+
+## 股票的最大利润
+
+假设把某股票的价格按照时间先后顺序存储在数组中，请问买卖该股票一次可能获得的最大利润是多少？
+
+**示例**：
+
+- 输入: [7,1,5,3,6,4]   输出: 5
+- 输入: [7,6,4,3,1]   输出: 0
+
+**思路**：
+
+找到最小买入的点，循环找出与最小买入点相差最大的数即为利润
+
+```js
+var maxProfit = function(prices) {
+    let max = 0;
+    let min = Number.MAX_VALUE;
+
+    for(const price of prices) {
+        max = Math.max(price-min, max);
+        min = Math.min(price, min);
+    }
+    return max
+};
+```
+
+## 求1+2+...+n
+
+求 `1+2+...+n` ，要求不能使用乘除法、for、while、if、else、switch、case等关键字及条件判断语句（A?B:C）。
+
+**示例**：
+
+- 输入: n = 3   输出: 6
+- 输入: n = 9   输出: 45
+
+**思路**：
+
+利用递归，在参数存在的情况下，递归和下一项一直相加
+
+```js
+var sumNums = function(n) {
+    n && (n+=sumNums(n-1))
+    return n;
+};
+```
+
+## 不用加减乘除做加法
+
+写一个函数，求两个整数之和，要求在函数体内不得使用 “+”、“-”、“*”、“/” 四则运算符号。
+
+**示例**：
+
+- 输入: a = 1, b = 1   输出: 2
+
+```js
+var add = function(a, b) {
+    while(b!=0) {
+        const carry = (a & b) << 1;
+        a = a ^ b;
+        b = carry;
+    }
+    return a;
+};
+```
+
+## 构建乘积数组
+
+给定一个数组 A[0,1,…,n-1]，请构建一个数组 B[0,1,…,n-1]，其中 B[i] 的值是数组 A 中除了下标 i 以外的元素的积, 即 B[i]=A[0]×A[1]×…×A[i-1]×A[i+1]×…×A[n-1]。不能使用除法。
+
+**示例**：
+
+- 输入: [1,2,3,4,5]   输出: [120,60,40,30,24]
+
+**思路**：
+
+将当前索引的左右两边分别创造两个数组去保存它们的乘积，然后使两数组第i项相乘即可
+
+```js
+var constructArr = function(a) {
+    let len = a.length;
+    let res = [];
+    let L = [];
+    let R = [];
+    L[0] = 1;
+    R[len - 1] = 1;
+    let j = 0;
+    for(let i = 1; i < len; i++){
+        L[i] = L[i - 1] * a[i - 1];
+    }
+    for(let i = a.length-2; i>=0; i--) {
+        R[i] = R[i+1] * a[i+1];
+    }
+    while(j < len) {
+        res.push(L[j] * R[j]);
+        j++;
+    }
+    return res;
+};
+```
+
+## 把字符串转换成整数
+
+将字符串数字转换成数字，如果前后有空格请去除，开头为负数也要获取，开头为+也要获取整数，但是开头+-则不获取，开头不为数字则返回0，并且值的大小不能超过此边界值[−231, 231 − 1]
+
+**示例**:
+
+- 输入: "42"   输出: 42
+- 输入: "   -42"   输出: -42
+- 输入: "4193 with words"   输出: 4193
+- 输入: "words and 987"   输出: 0
+- 输入: "-91283472332"   输出: -2147483648
+
+**思路**：
+
+使用正则表达式结合if判断，处理各种制约条件
+
+```js
+var strToInt = function(str) {
+    let s = str.trim();
+    let maxVal = Math.pow(2,31)-1;
+    let minVal = Math.pow(-2, 31);
+    if(/^\+/g.test(s)){
+        s = s.replace(/^\+/g, '')
+        if(/^-/g.test(s)){
+            return 0;
+        }
+    }
+    s = s.match(/^-?\d+/g);
+    if(s){
+        if(Number(s[0])>maxVal){
+            return maxVal
+        } else if(Number(s[0]) <minVal){
+            return minVal
+        } else {
+            return s[0];
+        }
+    } else {
+        return 0;
+    }
 };
 ```
 
