@@ -409,6 +409,36 @@ var lowestCommonAncestor = function(root, p, q) {
 };
 ```
 
+## 二叉树的最近公共祖先
+
+给定一个二叉树, 找到该树中两个指定节点的最近公共祖先。
+
+**示例**：
+
+- 输入: root = [3,5,1,6,2,0,8,null,null,7,4], p = 5, q = 1   输出: 3
+- 输入: root = [3,5,1,6,2,0,8,null,null,7,4], p = 5, q = 4   输出: 5
+
+**思路**：
+
+递归遍历寻找最近的公共祖先
+
+```js
+var lowestCommonAncestor = function(root, p, q) {
+    if(root === null) {
+        return null;
+    }
+    if(root === p || root === q) {
+        return root;
+    }
+    let leftRes = lowestCommonAncestor(root.left, p, q);
+    let rightRes = lowestCommonAncestor(root.right, p, q);
+    if(leftRes && rightRes){
+        return root;
+    }
+    return leftRes !==null ? leftRes : rightRes;
+};
+```
+
 # 顺时针打印矩阵
 
 输入一个矩阵，按照从外向里以顺时针的顺序依次打印出每一个数字。
