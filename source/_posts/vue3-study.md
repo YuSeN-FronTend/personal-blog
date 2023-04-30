@@ -132,5 +132,63 @@ ref在模板中使用时不用加.value，会自动完成解包，如下所示
 </script>
 ```
 
+## 计算属性
 
+在模板语法中，可以写一些简单的表达式，并且是非常方便的。但是如果出现太多逻辑，会使得代码非常臃肿，所以vue给我们提供了更好的解决方案——计算属性，请看下述示例
+
+```js
+<template>
+    <div>
+        <span :style="{color: textColor}">你好啊</span>
+        <button @click="handleArr">改变颜色</button>
+    </div>
+</template>
+
+<script setup>
+import { computed, reactive } from 'vue';
+
+    let arr = reactive(['red', 'blue', 'green']);
+
+    function handleArr() {
+        if(arr.length){
+            arr.pop();
+        }
+    }
+
+    let textColor = computed(() => {
+        return arr.length ? 'green': 'red';
+    })
+</script>
+```
+
+创建一个数组，再创建一个方法使方法每次触发都删除数组最后一个元素。将此方法绑定到一个按钮上。在创建一个计算属性，在arr数组长度为0时改变textColor的值，并且把textColor的值当作span中文字的color。当点击三次后，span中的字颜色变了，说明计算属性可以监听值的变化。
+
+### 计算属性缓存vs方法
+
+计算属性是会被缓存的，如果计算属性所监听的值没有发生变化，则无论重新渲染多少次页面，里面的值都不会被重新计算，而是使用先前存储好的值。这样其实可以节省掉很多性能，并且计算属性只会基于响应式依赖缓存，如下代码
+
+```js
+let time = computed(() => Date.now())
+```
+
+由于`Date.now()`不是响应式的，所以不会更改
+
+### 最佳实践
+
+计算属性默认只是只读的，可以改写成可以被修改，但是没必要。因为计算属性只是基于原始响应式的一个快照，直接修改快照是没有任何意义。所以计算属性应该永远不被更改，想要改变就应该更新他所依赖的原装态以触发新的计算。
+
+## 类与样式绑定
+
+### 绑定类
+
+- 使用v-bind:class="{ active: isActive }"，意思是active类存在取决于isActive的值是否为真
+- 使用v-bind:class="[类名, 类名]"，可以绑定多个类名，还可以在数组内使用三元表达式
+- 还可以使用上述方法调用子组件时给子组件绑定类名也是可以实现的
+
+### 绑定内联样式
+
+- 使用v-bind:style="{css属性}"，可以直接添加样式，也可以在js部分定义好对象直接调用
+- v-bind:style同样可以绑定数组，添加包含多个样式的对象
+
+由于这一部分和vue2中基本没有区别，不做太多赘述
 
