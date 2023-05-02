@@ -949,3 +949,371 @@ v-model可以实现双向绑定，但是v-model的直接使用，等同于如下
 在上层组件中提供一个值，在他之内的所有组件都可以获取到此值无论几层嵌套
 
 还可以在main.js中全局提供，这样在任何页面都可以注入。如果想让提供的数据为只读的，只需在提供时用readonly()包裹住传过来的值即可
+
+## 逻辑复用
+
+### 组合式函数
+
+在完成项目时，常常有一部分代码是可以复用的，我们可以把它单独维护到一个文件内，再在需要使用的页面引入。和vue2中的mixin做的是类似的事情但和mixin的用法不同。这样做的好处不言而域，更少的编写重复的代码，更快的开发周期，更清晰的代码结构和更简单的后续维护。
+
+具体实现就是通过ref，watch等vue中的组合式API去在一个单独的文件中书写共用逻辑，在需要的页面引用即可。但还有几点约定需要记住：
+
+- 命名必须使用驼峰命名法并且以"use"开头。由于到了企业，很多代码都是公用的，别人还要看我们写的代码，所以要养成遵守规定的习惯。
+- 如果传过来的参数是一个ref，我们要处理好兼容问题，使用`unref()`可以解决此问题
+- 我们一直使用的都是ref()因为推荐的约定是组合是函数始终返回一个包含多个ref的普通非相应式对象，这样组件在解构之后仍可以保证是响应式的
+
+#### 副作用
+
+组合式函数可以执行副作用，但要注意以下规则：
+
+- 如果使用了SSR，则确保组件在组建挂载后才调用生命周期钩子中执行DOM相关的副作用
+- 确保在`onUnmounted`时清理副作用。举例来说，如果一个组合是函数设置了一个事件监听器，他就应该在`onUnmounted`中被移除
+
+#### 使用限制
+
+组合式函数一定要在`<script setup>`或者`setup()`钩子中，应始终被同步地调用。这个限制是为了让vue能够确定当前执行的是哪个组件实例，可以将生命周期钩子注册到该组件实例上，将计算属性和监听器注册到该组件实例上，以便在该组件被卸载时停止监听，避免内存泄漏
+
+#### 与其他模式比较
+
+##### 和mixin比较
+
+mixin和组合式函数相比有三个短板：
+
+- **不清晰的数据来源**：当使用了多个mixin时，实例上的数据来源于哪个mixin变得不明显，这使代码维护很困难
+- **命名空间冲突**：多个来自不同作者地mixin可能会注册相同地属性名，造成命名冲突
+- **隐式地跨mixin交流**：多个mixin需要依赖共享属性名来进行相互作用，这使得它们隐式地耦合在一起
+
+##### 和React Hooks的对比
+
+组合式API一部分灵感就来自于Reack Hooks，但vue的组合是函数时基于vue细粒度的相应式系统，这和React hooks的执行模型有本质不同
+
+### 自定义指令
+
+需要使用directive来创建自定义指令，在main.js写入如下代码
+
+```js
+app.directive('color', (el, binding) => {
+    el.style.color = binding.value
+})
+```
+
+在页面中使用
+
+```html
+<span v-color="'red'">123</span>
+```
+
+这样123的字体会变为红色
+
+如果在组件上使用自定义指令，会发生之前章节提到过的透传。并且最好不在组件上使用自定义指令
+
+### 插件
+
+插件是一种能为Vue添加全局功能的工具代码，发挥作用的常见场景有：
+
+- 通过`app.component()`和`app.directive()`注册一到多个全局组件或自定义指令
+- 通过`app.provide()`使一个资源可被注入进整个应用
+- 向`app.config.globalProperties`中添加一些全局实例属性和方法
+
+#### 编写一个插件
+
+在plugins文件夹下创建一个文件，里面写入此方法
+
+```js
+export default {
+    install: (app, options) => {
+        app.config.globalProperties.$translate = (key) => {
+            return key.split('.').reduce((o,i) => {
+                console.log(o,i);
+                if(o) return o[i]
+            }, options)
+        }
+    }
+}
+```
+
+install接受的两个参数为app.use使传入的，` app.config.globalProperties`是将translate挂载到vue原型上，key为页面上传进的参数，以下为main.js代码
+
+```js
+import i18n from "./plugins/i18n";
+app.use(i18n, {
+    greetings: {
+        hello: 'Bonjour!'
+    }
+})
+```
+
+现在页面就可以使用了， 会出现Bonjour!
+
+```vue
+<h1>{{ $translate('greetings.hello') }}</h1>
+```
+
+#### 插件中的provide/inject
+
+在插件中我们可以全局provide
+
+```js
+export default {
+    install: (app, options) => {
+        app.config.globalProperties.$translate = (key) => {
+            return key.split('.').reduce((o,i) => {
+                if(o) return o[i]
+            }, options)
+        }
+        app.provide('i18n', options)
+    }
+}
+```
+
+然后在页面中获取即可
+
+```js
+import { inject } from 'vue';
+const i18n = inject('i18n');
+console.log(i18n);
+```
+
+## 内置组件
+
+### Transition
+
+用于组件在切换时发生的动画，由于和vue2大同小异，本章只记录重要的知识点，当作复习
+
+#### CSS过渡class
+
+- `v-enter-from`：
+
+  进入动画的起始状态，在元素插入之前添加，在元素插入完成后的下一帧移除。
+
+- `v-enter-active`：
+
+  进入动画的生效状态，应用于整个进入动画阶段。在元素被插入之前添加，在过渡或动画完成之后移除。这个class可以被用来定义进入动画的持续时间、延迟与速度曲线类型
+
+- `v-enter-to`：
+
+  进入动画的结束状态。在元素插入完成后的下一帧被添加，在过渡或动画完成之后移除。
+
+- `v-leave-from`：
+
+  离开动画的起始状态。在离开过渡效果被触发时立即添加，在一帧后被移除
+
+- `v-leave-active`：
+
+  离开动画的生效状态。应用于整个离开动画阶段。在离开过渡效果被触发时立即添加，在过渡或动画完成之后移除。这个 class 可以被用来定义离开动画的持续时间、延迟与速度曲线类型。
+
+- `v-leave-to`：
+
+  离开动画的结束状态。在一个离开动画被触发后的下一帧被添加，在过渡或动画完成之后移除
+
+#### 为过渡效果命名
+
+在`<Transition></Transition>`添加name属性，则css部分代码的class要改成`修改后的name值-enter-to`
+
+#### CSS的animation和transition
+
+一般过渡都是搭配css原生动画和帧动画去使用，可以使触发的动画更加的圆滑
+
+#### 性能考量
+
+使用transform和opacity之类的属性制作动画是非常高效的，因为它们在动画过程中不会影响到DOM结构，因此不会每一帧都出发昂贵的css布局重新计算。并且大多数的现代浏览器都可以在执行transform动画时利用GPU进行硬件加速
+
+#### js钩子
+
+我们可以通过监听`<Transition>`组件事件的方式在过渡过程中挂上钩子函数
+
+```html
+<Transition
+  @before-enter="onBeforeEnter"
+  @enter="onEnter"
+  @after-enter="onAfterEnter"
+  @enter-cancelled="onEnterCancelled"
+  @before-leave="onBeforeLeave"
+  @leave="onLeave"
+  @after-leave="onAfterLeave"
+  @leave-cancelled="onLeaveCancelled"
+>
+  <!-- ... -->
+</Transition>
+```
+
+```js
+// 在元素被插入到 DOM 之前被调用
+// 用这个来设置元素的 "enter-from" 状态
+function onBeforeEnter(el) {}
+
+// 在元素被插入到 DOM 之后的下一帧被调用
+// 用这个来开始进入动画
+function onEnter(el, done) {
+  // 调用回调函数 done 表示过渡结束
+  // 如果与 CSS 结合使用，则这个回调是可选参数
+  done()
+}
+
+// 当进入过渡完成时调用。
+function onAfterEnter(el) {}
+function onEnterCancelled(el) {}
+
+// 在 leave 钩子之前调用
+// 大多数时候，你应该只会用到 leave 钩子
+function onBeforeLeave(el) {}
+
+// 在离开过渡开始时调用
+// 用这个来开始离开动画
+function onLeave(el, done) {
+  // 调用回调函数 done 表示过渡结束
+  // 如果与 CSS 结合使用，则这个回调是可选参数
+  done()
+}
+
+// 在离开过渡完成、
+// 且元素已从 DOM 中移除时调用
+function onAfterLeave(el) {}
+
+// 仅在 v-show 过渡中可用
+function onLeaveCancelled(el) {}
+```
+
+#### 可复用的过渡效果
+
+可以把`<Transition>`组件包装成一个组件来复用
+
+#### 出现时过渡
+
+如果想在某个节点初次渲染时应用一个效果，可以在标签中添加`appear`属性
+
+#### 元素间过渡
+
+除了单个元素切换，还可以用v-else-if来完成多组件间切换，但要确保任意时刻都要有元素被渲染
+
+#### 过渡模式
+
+在某些时候我们可能需要在组件的切换过程中需要等上一个组件动画结束再开始下一个组件，我们自己来控制是很困难的，但可以添加`mode="out-in"`即可实现
+
+### TransitionGroup
+
+它是用来对v-for列表中的元素插入、移除顺序改变添加动画效果
+
+#### 和Transition的区别
+
+它们两个支持基本相同的props，CSS过渡class和js钩子监听器，但有以下几点区别：
+
+- 默认情况下它不会渲染一个容器元素，但可以通过传入tag="元素标签名"来指定一个元素进行渲染
+- 过渡模式在这里不可用，因为不再是互斥的元素之间的切换
+- 列表中的每个元素都必须有个独一无二的attribute
+- CSS过渡class会被应用再列表内的元素上，而不是容器元素上
+
+例子就不举了，[vue官网](https://cn.vuejs.org/guide/built-ins/transition-group.html)在上可以看到很多例子
+
+### keepAlive
+
+它可以在多个组件动态切换时缓存被移除的组件实例
+
+#### 基本使用
+
+之前章节提到过动态组件，在切换之后不会保留，如下列代码
+
+```vue
+<template>
+    <div>
+        <button @click="tabName = 'demo'">切换组件demo</button>
+        <button @click="tabName = 'grandSon'">切换组件grandSon</button>
+        <component :is="obj[tabName]"></component>
+    </div>
+</template>
+
+<script setup>
+import demo from '@/components/ppp/demo.vue'
+import grandSon from '@/components/ppp/grandSon'
+import { ref } from 'vue';
+let obj = {
+    'demo': demo,
+    'grandSon': grandSon
+}
+let tabName = ref('demo')
+
+</script>
+```
+
+demo组件中写有变量加一逻辑，每次加一后切换组件，在切换回demo都会变为零，而是用keepAlive就可以缓存demo这个组件，如下
+
+```html
+<keep-alive>
+	<component :is="obj[tabName]"></component>
+</keep-alive>
+```
+
+#### 包含/排除
+
+由于keepAlive默认会缓存内部所有的组件实例，我们可以通过include和exclude属性来定制该行为，这两个属性的值都可以是一个以英文逗号分隔的字符串，一个正则表达式或者包含这两种类型的一个数组
+
+```html
+<!-- 以英文逗号分隔的字符串 -->
+<KeepAlive include="a,b">
+  <component :is="view" />
+</KeepAlive>
+
+<!-- 正则表达式 (需使用 `v-bind`) -->
+<KeepAlive :include="/a|b/">
+  <component :is="view" />
+</KeepAlive>
+
+<!-- 数组 (需使用 `v-bind`) -->
+<KeepAlive :include="['a', 'b']">
+  <component :is="view" />
+</KeepAlive>
+```
+
+它会根据组件的name选项自动匹配，现在会自动生成对应的name选项了，如下
+
+```html
+<keep-alive include="grandSon">
+	<component :is="obj[tabName]"></component>
+</keep-alive>
+```
+
+这样demo组件就不会被缓存了
+
+#### 最大缓存实例数
+
+通过传入max属性可以限制可被缓存的最大组件实例数，在设置此属性后类似于一个LRU缓存(最近最少使用算法)，如果缓存的实例数量即将超过指定的哪个最大数量，则最久没有被访问的缓存实例将会被销毁，为新的实例腾出空间，使用如下
+
+```html
+<KeepAlive :max="10">
+  <component :is="activeComponent" />
+</KeepAlive>
+```
+
+#### 缓存实例的生命周期
+
+当一个组件实例从DOM上移除但因为被keepAlive缓存时，他将变为不活跃状态而不是被卸载，当一个组件实例作为缓存树一部分插入到DOM树中，它将重新被激活。一个持续存在的组件可以通过`onActivated()`和`onDeactivated()`注册相应的两个状态的生命周期钩子
+
+- `onActivated()`：组件首次挂载和每次重新被激活时都会调用
+- `onDeactivated()`：组件进入缓存时或者被卸载时都会调用
+
+### TelePort
+
+可以将组件内部的一部分模板传送到该组件DOM结构外层的位置
+
+#### 基本用法
+
+比如我们想点击一个按钮弹出模态框，而模态框和按钮的组件没有直接关系，只是需要触发，这时就可以把模态框传入到body之下即可，再次不做过多演示了，因为和vue2基本类似
+
+#### 搭配组件使用
+
+Teleport只改变了渲染的DOM结构，并不会组件间的逻辑关系。如果Teleport包含了一个组件，那么该组件始终和这个使用了它的组件保持料机上的父子关系，并且传出的props和emit也会照常工作，提供与注入也一样
+
+#### 禁用Teleport
+
+一些场景可能需要视情况禁用Teleport，如下书写即可
+
+```html
+<Teleport :disabled="isMobile">
+  ...
+</Teleport>
+```
+
+
+
+
+
