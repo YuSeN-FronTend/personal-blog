@@ -1313,7 +1313,174 @@ Teleport只改变了渲染的DOM结构，并不会组件间的逻辑关系。如
 </Teleport>
 ```
 
+### Suspense
 
+由于不太完善，等待完善后再书写
 
+## 应用模块化
 
+### 单文件组件
+
+单文件组件顾名思义就是`*.vue`文件，英文Single-File Component，简称SFC，是一种特殊的文件格式，是我们能将一个vue组件模板逻辑和样式封装在单个文件里，见如下代码
+
+```vue
+<template>
+  <p class="greeting">{{ greeting }}</p>
+</template>
+<script setup>
+import { ref } from 'vue'
+const greeting = ref('Hello World!')
+</script>
+<style>
+.greeting {
+  color: red;
+  font-weight: bold;
+}
+</style>
+```
+
+#### 为什么使用SFC
+
+使用SFC有以下几种优点：
+
+- 使用熟悉的HTML，CSS和JS语法编写模块化的组件
+- 让本来就强相关的关注点自然内聚
+- 预编译模板，避免编译时的运行开销
+- 组件作用域的CSS
+- 在组合式API时语法更简单
+- 通过交叉分析模板和逻辑代码能进行更多编译时优化
+- 更好的IDE支持，提供自动补全和对模板中表达式的类型检查
+- 开箱即用的模块热更新支持
+
+SFC是vue框架提供的一个功能，以下场景为使用SFC的推荐场景：
+
+- 单页面应用(SPA)
+- 静态站点生成(SSG)
+- 任何值得引入构建步骤以获得更好的开发体验的项目
+
+但是一些轻量的场景，SFC显得多余，比如只需要给静态HTML做一点交互，则没必要使用SFC
+
+#### SFC是如何工作的
+
+直接再需要使用组件的页面正常引用即可
+
+#### 如何看待关注点分离
+
+关注点分离就是化繁为简，也就是认为SFC将前端三剑客集成到一处有失妥当，应当分离开。
+
+针对这一点我们要达成共识：**前端开发的关注点不是完全基于文件类型分离的**。前端工程化的目的是要能够更好的维护代码。如上述所说并不能帮助我们再日常开发中提升效率。在现代的UI开发中，我们发现与其将代码库划分为三个巨大的层，相互交织在一起，不如将它们划分为松散耦合的组件，再按需组合起来。在一个组件中，把这三者放在一起，实际上会使组件更具有内聚性和可维护性
+
+### 工具链
+
+#### 项目脚手架
+
+##### Vite
+
+Vite是一个轻量级的、速度极快的构建工具，对Vue SFC提供第一优先级支持
+
+##### Vue CLI
+
+Vue CLI是官方提供的基于webpack的Vue工具链，现在处于维护模式。官方推荐使用Vite开始新的项目，除非当前项目依赖特定的webpack的特性。大多数情况，Vite将提供更优秀的开发体验
+
+#### IDE支持
+
+- 推荐使用VSCode，配合Vue语言特性(Volar)插件，该插件提供了语法高亮、TypeScript支持，以及模板内表达式与组件props的只能提示
+- WebStorm同样也为Vue的单文件组件提供了很好的内置支持
+
+#### 浏览器开发插件
+
+devtools，就是大家喜闻乐见的vue开发者工具
+
+#### 测试
+
+- Cypress推荐用于 E2E测试，也可以通过Cypress组件测试运行器，来给Vue SFC作单文件组件测试
+- Vitest是一个追求更快运行速度的测是运行器，由vue/vite团队成员开发，主要基于vite的应用设计，可以为组件提供即时相应的测式反馈
+- Jest可以通过vite-jest配合vite使用，不过只推荐在你已经有一套基于jest的测试集，且想要迁移到基于vite的开发配置时使用，因为vitest也能够提供类似的功能，且后者与vite的集成更方便高效
+
+#### 代码规范
+
+eslint是通用的
+
+#### 格式化
+
+Volar有格式化功能，Prettier也提供了内置的格式化支持
+
+#### SFC自定义块集成
+
+自定义块被编译成导出到同一Vue文件的不同请求查询。这取决于底层构建工具如何处理这类导入请求。
+
+- 如果使用Vite，需使用一个自定义Vite插件将自定义块转换为可执行的js代码
+- 如果使用Vue CLI或只是webpack，需要使用一个loader来配置如何转换匹配到的自定义块
+
+#### 底层库
+
+##### `@vue/compiler-sfc`
+
+这个包是Vue核心monorepo的一部分，并始终和vue主包版本号保持一致，它成为vue主包的一个依赖被代理到了vue/compiler-sfc目录下，因此你无需单独安装它。这个包本身提供了处理SFC的底层的功能，并只适用于需要支持VueSFC相关工具链的开发者
+
+##### `@vitejs/plugin-vue`
+
+为Vite提供Vue SFC支持的官方插件
+
+##### `vue-loader`
+
+为webpack提供Vue SFC支持的官方loader
+
+### 路由
+
+#### 客户端 vs 服务端路由
+
+服务端路由是指服务器根据用户访问的URL路径返回不同的响应结果。当我们在一个传统的服务端渲染的web应用中点击一个链接时，浏览器会从服务端获得全新的HTML，然后重新加载整个页面
+
+然而，在单页面应用中，客户端的js可以拦截页面的跳转请求，动态获取新的数据，然后再无需重新加载的情况下更新当前页面。这样通常可以带来更顺滑的用户体验，尤其是在更偏向应用的场景下，因为这类场景下用户通常会在很长的一段事件中做出多次交互
+
+在这类单页应用里，路由是在客户端执行的。一个客户端路由器的职责就是利用诸如HisroryAPI或是hashChange事件这样的浏览器API来管理应用当前应该渲染的视图
+
+#### 实现一个简单的路由
+
+创建两个组件引入到一个组件中，见如下代码书写即可
+
+```vue
+<template>
+    <a href="#/">Home</a>
+    <a href="#/demo">Demo</a>
+    <component :is="currentView"></component>
+</template>
+
+<script setup>
+    import { computed, ref } from 'vue'
+    import demo from '../components/ppp/demo.vue';
+    import Home from './Home.vue';
+
+    const routes = {
+        '/': Home,
+        '/demo': demo
+    }
+    const currentPath = ref(window.location.hash);
+    window.addEventListener('hashchange', () => {
+        currentPath.value = window.location.hash;
+        console.log(currentPath);
+    })
+    const currentView = computed(() => {
+        return routes[currentPath.value.slice(1) || '/']
+    })
+</script>
+```
+
+### 状态管理
+
+意思就是再单一的页面，别的页面想要更改当前页面数据，如果是父组件改变子组件还比较简单，但如果是没有关系的两个组件就会很复杂。说到这大家都能想到了，就是vuex。
+
+vuex是vue官方针对状态管理而去编写的一个库，但现在vue3的出现使得另一个状态管理库将要迭代vuex，也就是Pinia(绰号大菠萝)。
+
+#### pinia
+
+用现成的响应式API实现状态管理是可行的，但如果是大规模的生产应用还需要考虑以下事项：
+
+- 更强的团队协作约定
+- 与Vue DevTools集成，包括时间轴、组件内部审查和时间旅行调试
+- 模块热更新
+- 服务端渲染支持
+
+Pinia就实现了上述需求，由vue核心团队维护。Pinia在生态系统能够和vuex承担相同的职责且能做的更好，因此我们建议使用Pinia。事实上Pinia最初是为了探索Vuex的下一个版本而开发的，而最终发现，Pinia已经实现了Vuex5中的大部分内容，所以将其作为了新的官方推荐。相比于Vuex，Pinia提供了更简洁直接的API，并提供了组合式API的风格，最重要的事，再使用TS时它提供了更完善的类型推导
 
