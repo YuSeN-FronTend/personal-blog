@@ -1484,3 +1484,90 @@ vuex是vue官方针对状态管理而去编写的一个库，但现在vue3的出
 
 Pinia就实现了上述需求，由vue核心团队维护。Pinia在生态系统能够和vuex承担相同的职责且能做的更好，因此我们建议使用Pinia。事实上Pinia最初是为了探索Vuex的下一个版本而开发的，而最终发现，Pinia已经实现了Vuex5中的大部分内容，所以将其作为了新的官方推荐。相比于Vuex，Pinia提供了更简洁直接的API，并提供了组合式API的风格，最重要的事，再使用TS时它提供了更完善的类型推导
 
+### 测试
+
+测试的意义在于预防代码中可能出现的意想不到的bug，长期测试可以保证代码的见状性并且能帮助自己和团队更快速，更自信的构建复杂的vue项目。
+
+#### 测试要做什么
+
+用白话讲就是检测所写的函数是否按照我们的预期执行
+
+#### 测试的类型
+
+基本分为以下三种
+
+- 单元测试：检查给定函数、类或组合式函数的输入是否产生预期的输出或副作用
+- 组件测试：检查组件是否正常挂载和渲染、是否可以互动，以及表现是否符合预期。这些测试比单元测试导入了更多的代码，更复杂，需要更多时间来执行
+- 端到端测试：检查跨越多个页面的功能，并对生产构建的vue应用进行实际的网络请求。这些测试通常涉及到建立一个数据库或其他后端
+
+以下拿单元测试举个简单的例子
+
+#### 单元测试
+
+创建一个vite搭建的vue项目，并且安装vitest(vue核心团队维护的测试工具)
+
+在vite.config.js中添加如下配置
+
+```js
+/// <reference types="vitest"/>
+
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+    test: {
+        // ...
+    }
+})
+```
+
+在package.json中添加启动命令
+
+```json
+"scripts": {
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+```
+
+创建一个函数sum.js，抛出了一个increment函数
+
+```js
+export function increment(current, max = 10) {
+    if (current < max) {
+        return current + 1
+    }
+    return current
+}
+```
+
+创建一个sum.test.js文件用于测试，代码如下
+
+```js
+import { increment } from '../src/components/sum'
+
+import { describe, expect, it, test } from 'vitest'
+
+describe('increment', () => {
+    it('increments the current number by 1', () => {
+        expect(increment(0, 10)).toBe(1)
+    })
+
+    it('does not increment the current number over the max', () => {
+        expect(increment(10, 10)).toBe(10)
+    })
+
+    it('has a default max of 10', () => {
+        expect(increment(10)).toBe(10)
+    })
+})
+```
+
+引入的describe是一个作用域，expect是断言，it或者test都是定义一种测试期望的方法，toBe用于断言基础对象是否相等。到这可能就看不懂什么意思了，用白话说一下。
+
+describe就是划分一个区域，只测试这一个函数。it或者test可以接受一条测试，第一个参数是测试名称，第二个参数是测试用例。expect传入一个函数可以获取函数的返回值，再和toBe里面的参数作比较，相等则测试成功，不相等则测试失败
+
+最后可以运行以下npm run test看一下测试结果
+
+### 服务端渲染
+
+已经多次记录过，不再赘述
