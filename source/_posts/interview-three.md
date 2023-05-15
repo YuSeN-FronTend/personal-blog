@@ -367,3 +367,25 @@ git push
 
 性能消耗方面：v-if有更高的切换消耗，v-show由更高的初始渲染消耗
 
+# 14、vue2的初始化过程vsvue3的初始化过程
+
+## vue2
+
+- 合并配置
+- 初始化生命周期
+- 初始化事件
+- 初始化渲染
+- 调用`beforeCreate`钩子函数
+- init injections and reactivity(这个阶段属性都已注入绑定，而且被`$watch`变成reactivity，但是`$el`还是没有生成，也就是DOM没有生成)
+- 初始化state状态(初始化data、props、computed、watcher)
+- 调用created钩子函数
+
+在初始化最后，如果检测到有el属性，则调用vm.$mount方法挂载vm，挂载的目标就是把模板渲染成最终的DOM
+
+## vue3
+
+- Vue.createApp()执行的是render的createApp()
+- renderer是createRenderer这个方法创建的
+- renderer的createApp()是createAppAPI()返回的
+- createAppApi接受到render之后，创建一个app实例，定义mount方法
+- mount会调用render函数，将vnode转换为真实DOM

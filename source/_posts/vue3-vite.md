@@ -181,3 +181,87 @@ vue2中的状态管理模式库就是我们熟悉的vuex，但在之前的学习
 - actions
 
   众所周知在vuex中它只用来处理异步操作，同步操作在mutations里面进行，但在pinia中删除了mutations，因为只需要actions就都可以搞定了，这样一来代码就清晰很多了，也更好维护了
+
+# 实现动态的导航栏路由匹配
+
+如果一个管理系统平台一定少不了导航栏。以前写项目的时候都是直接在导航栏中添加静态的名字，图标以及路由信息。这次有了一个好的想法，直接获取router里面的信息，然后遍历生成一个导航栏，这样每次再添加新的导航栏只需要添加路由，页面上就会显示出对应的导航栏。
+
+- 布局
+
+  利用element布局容易调整宽高即可
+
+- 导航栏
+
+  使用的是elementPlus的导航栏
+
+- 实现过程
+
+  首先通过router的内置API，getRoutes来获取所有路由，并筛选属于一级菜单的部分
+
+  ```ts
+  import { useRouter } from 'vue-router';
+  const router = useRouter();
+  let list = router.getRoutes().filter((item) => item.meta.type === 'first')
+  ```
+
+  寻找到即可去实现遍历菜单功能，但需要考虑两种情况：
+
+  - 一级菜单有子路由
+  - 一级菜单没有子路由
+
+  思路理顺之后的代码如下
+
+  ```html
+  <div v-for="item in list" :key="item.path">
+  	<el-sub-menu v-if="item.children.length">
+  		<template #title>
+          	<el-icon>
+              	<Icon :icon="item.meta.icon"></Icon>
+              </el-icon>
+              span>{{ item.meta.name }}</span>
+  		</template>
+  	<el-menu-item-group>
+      	<el-menu-item v-for="childItem in item.children" :key="childItem.path" :index="childItem.path">
+          	<el-icon>
+              	<Icon :icon="childItem.meta?.icon"></Icon>
+  			</el-icon>{{ childItem.meta?.name }}</el-menu-item>
+  		</el-menu-item-group>
+  	</el-sub-menu>
+      <el-menu-item v-else :index="item.path">
+      	<template #title>
+          	<el-icon>
+              	<Icon :icon="item.meta.icon"></Icon>
+  			</el-icon>
+              {{ item.meta.name }}</template>
+  	</el-menu-item>
+  </div>
+  ```
+
+  这样一来只要按照一定的规则书写路由，那每次添加完路由，页面上就会显示了
+
+- 踩坑
+
+  elementPlus的图标相较于element有所变动，是以标签形式引用，这样对于我们的动态引入是很有影响的。寻找了很多资料最后发现注册全局组件的方法比较科学，实现如下
+
+  ```ts
+  import * as Icons from '@element-plus/icons'
+  // 创建Icon组件
+  const Icon = (props: { icon: string }) => {
+      const { icon } = props
+      console.log(icon);
+      return createVNode(Icons[icon as keyof typeof Icons])
+  }
+  // 注册Icon组件
+  app.component('Icon', Icon)
+  ```
+
+  这样注册完在页面中直接调用即可
+
+  ```html
+  <Icon :icon="item.meta.icon"></Icon>
+  ```
+
+  但这样图标太大了，我用了很多方法包括强制穿透样式，都没有效果。最后才想起来在外面套一个el-icon标签，结果真的实现了，至此功能已实现完成
+
+  
+
