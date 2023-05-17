@@ -263,5 +263,134 @@ vue2中的状态管理模式库就是我们熟悉的vuex，但在之前的学习
 
   但这样图标太大了，我用了很多方法包括强制穿透样式，都没有效果。最后才想起来在外面套一个el-icon标签，结果真的实现了，至此功能已实现完成
 
-  
+- 优化
 
+  今天突然想到如果一个路由有好多层children，我们的代码就会出现bug，所以我写了一个递归组件，让代码自己检测，这样就解决了这个问题，思路如下：
+
+  - 注册一个全局组件nav-aside
+
+    ```ts
+    import navAside from './components/layout/navAside/index.vue'
+    app.component('navAside', navAside)
+    ```
+
+    navAside内部代码为
+
+    ```vue
+    <template>
+            <div v-for="item in props.navData" :key="item.path">
+                <el-sub-menu v-if="item.children?.length">
+                    <template #title>
+                        <el-icon>
+                            <Icon :icon="item.meta.icon"></Icon>
+                        </el-icon>
+                        <span>{{ item.meta.name }}</span>
+                    </template>
+                    <nav-aside :navData="item.children"></nav-aside>
+                </el-sub-menu>
+                <el-menu-item v-else :index="item.path">
+                    <template #title>
+                        <el-icon>
+                            <Icon :icon="item.meta.icon"></Icon>
+                        </el-icon>
+                        {{ item.meta.name }}</template>
+                </el-menu-item>
+            </div>
+    </template>
+    
+    <script setup lang="ts">
+    let props = defineProps(['navData']);
+    
+    </script>
+    ```
+
+    也就是把原来menu里面的代码剖离出来，可以发现再次页面也调用了本页面，这个还是比较巧妙的，但是一定要留一个出口来避免死循环问题
+
+  - 修改aside内部代码
+
+    ```vue
+    <template>
+        <el-row>
+            <el-col :span="24">
+                <div style="height: 7vh"></div>
+                <el-menu :uniqueOpened="true" default-active="/dashboard" class="el-menu-vertical-demo" @open="handleOpen"
+                    @close="handleClose" background-color="#191a23" text-color="#fff" active-text-color="#4d70ff" router>
+                   <nav-aside :navData="props.navData"></nav-aside>
+                </el-menu>
+            </el-col>
+        </el-row>
+    </template>
+    
+    <script setup lang="ts">
+    let props = defineProps(['navData'])
+    
+    const handleOpen = (key: any, keyPath: any) => {
+        console.log(key, keyPath);
+    };
+    const handleClose = (key: any, keyPath: any) => {
+        console.log(key, keyPath);
+    };
+    </script>
+    ```
+
+    在原来位置引入组件即可，至此优化成功
+
+# 导航栏切换路由产生动画效果
+
+使用vue自带的transition的标签即可解决
+
+```html
+<transition>	
+	<router-view></router-view>
+</transition>
+```
+
+但再vue3中这样使用报错，因为router-view标签不可以在transition和keep-alive标签中使用，所以我们使用以下格式
+
+```html
+<router-view v-slot="{ Component }">
+	<transition>
+    	<component :is="Component" />
+    </transition>
+</router-view>
+```
+
+# 导航栏的显示与隐藏
+
+由于太长时间没有写管理系统相关代码，并且还用的是vue3和TS的新知识，遇到了一些坑，具体如下：
+
+- 隐藏导航栏时aside宽度不变化问题
+
+  寻找了很长时间，最后发现它的宽度是定死的，将宽度更改成auto后，再添加overflow: hidden属性，即可完成侧边栏宽度随着导航栏宽度缩小而缩小
+
+- 递归组件后隐藏导航栏文字不消失问题
+
+  这真的是个大坑，搜索了很多相关资料，都说是因为外层有一个div，会造成预期之外的错误，需要下载vue-fragment插件。下载之后进行类似操作也没有想过，还试过根据状态去隐藏文字，虽然实现了但是感觉治标不治本，最后突然想起，vue3不需要根组件的原因就是因为默认给每个组件模板添加了`<fragment>`标签，所以直接在模板中添加`<template>`标签进行循环，问题解决
+
+  ```html
+  <template>
+      <template v-for="item in props.navData" :key="item.path">
+          <el-sub-menu v-if="item.children?.length" :index="item.path">
+              <template #title>
+                  <el-icon>
+                      <Icon :icon="item.meta.icon"></Icon>
+                  </el-icon>
+                  <span>{{ item.meta.name }}</span>
+              </template>
+              <nav-aside :navData="item.children"></nav-aside>
+          </el-sub-menu>
+          <el-menu-item v-else :index="item.path">
+              <el-icon>
+                  <Icon :icon="item.meta.icon"></Icon>
+              </el-icon>
+              <template #title>
+                  <span>{{ item.meta.name }}</span>
+              </template>
+          </el-menu-item>
+      </template>
+  </template>
+  ```
+
+- 点击侧边栏刷新高亮消失问题
+
+  只需要再sessionStorage存入每次点击的路由路径，每次刷新获取即可。一定要给展开的菜单也设置路径index，不然可能会导致刷新高亮在但是一级菜单不会默认展开
