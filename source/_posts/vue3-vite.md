@@ -394,3 +394,227 @@ vue2中的状态管理模式库就是我们熟悉的vuex，但在之前的学习
 - 点击侧边栏刷新高亮消失问题
 
   只需要再sessionStorage存入每次点击的路由路径，每次刷新获取即可。一定要给展开的菜单也设置路径index，不然可能会导致刷新高亮在但是一级菜单不会默认展开
+
+# 添加动态Tabs和路由做联动
+
+在elementPlus中搜索tabs，即可使用里面的功能。但是样式的调整是一个大坑，需要自己尝试，还有最重要的大坑！！！Tab键的slot引用在vue3中做了修改，在vue2中只需要`<span slot="label"></span>`即可，但在vue3中的slot变换了写法，如下：
+
+```html
+	<template #label>
+    	<el-icon>
+        	<Icon :icon="item.icon"></Icon>  
+        </el-icon> 
+      	<span>{{ item.title }}</span>
+	</template>
+```
+
+这个小错误耽误了两个小时，还是对vue3特性不够熟悉
+
+样式设置完成后，在router文件中设置路由首位，在每次路由切换时在sessionStorage添加相应的数据，如果存在则不会重复添加，并且利用pinia来保持页面在sessionStorage变化的同时使页面保持联动。
+
+昨天在切换路由时，tabs没有联动，但是逻辑部分并没发现问题，今天在想就感觉是响应式的问题，然后搜索了一下pinia响应式，用过后发现果然是这部分问题见如下代码
+
+```ts
+//原代码
+import { useCar } from '../../../store'
+let store = useCar();
+let editableTabsValue = store.routePath;
+
+// 改后代码
+import { useCar } from '../../../store'
+import { storeToRefs } from 'pinia';
+let store = storeToRefs(useCar());
+let editableTabsValue = store.routePath;
+```
+
+tabs键与左侧导航栏的联动同理
+
+最后需要完成关闭tabs也要实现路由跳转并且刷新也要保持状态，这就说明要pinia和sessionStorage的交互要做得好，见如下代码
+
+```ts
+watchEffect(() => {
+    if(store.tabRoutes.length > 1) {
+        closable.value = true
+    } else {
+        closable.value = false
+    }
+})
+function handleTab(e:any) {
+    if(e.props.name !== sessionStorage.getItem('routePath')) {
+        store.handleRoutePath(e.props.name)
+        app?.appContext.config.globalProperties.$router.push(e.props.name)
+    }
+}
+
+function removeTab(targetName: any) {
+    let nowRoute = app?.appContext.config.globalProperties.$route.fullPath
+    if(nowRoute === targetName) {
+        store.tabRoutes.forEach((item:any, index:number) => {
+            if(item.name === targetName) {
+                if(index === store.tabRoutes.length - 1) {
+                    store.deleteTabRoutes(index)
+                    let name = store.tabRoutes[store.tabRoutes.length - 1].name
+                    store.handleRoutePath(name)
+                    app?.appContext.config.globalProperties.$router.push(name)
+                } else {
+                    store.deleteTabRoutes(index)
+                    let name = store.tabRoutes[index].name
+                    store.handleRoutePath(name)
+                    app?.appContext.config.globalProperties.$router.push(name)
+                }
+            }
+        });
+    } else {
+        store.tabRoutes.forEach((item: any, index: number) => {
+            if (item.name === targetName) {
+                store.deleteTabRoutes(index);
+            }
+        });
+    }
+}
+```
+
+上面第一个监听，就是监听tabs是否大于1，如果不大于一是不允许删除的。第二个方法是element自带的事件，用于在点击tabs时做的一些逻辑，我们在里面需要判断当前点击的tabs路由和当前路由是否相同，不相同则跳转，并且将状态保存到pinia仓库中。第三个函数逻辑较为复杂，需要判断多种情况如下：
+
+- 关闭的标签页和当前标签页为同一个
+
+  - 当前标签页为最后一个标签
+
+    删除此标签并且将当前路由状态保存为删除后数组的最后一个元素，保存完毕后还需跳转到该路由
+
+  - 当前标签页不为最后一个标签
+
+    删除此标签并且将当前路由状态保存为当前删除项后面一下元素，保存完毕后跳转到该路由
+
+- 关闭的标签页和当前标签页不为同一个
+
+  只需删除此标签即可
+
+至此，动态tabs联动就以完成，虽然篇幅不长，但是耗时将近12个小时，总体来说学到了不少东西，哪怕平时看起来有思路的东西，真的上手之后才发现其实并没有那么简单，有的坑还是要趟一遍才明白
+
+## 更改其他逻辑该部分代码出现的冲突
+
+### 书写退出登录时出现的问题
+
+今天在设置退出登陆时，有一个小问题，用路由改变回到首页，逻辑没问题，但是利用路由跳转，则不可以，寻找了一会发现是因为使用路由跳转是不会更新pinia状态的，pinia保持状态就会影响sessionStorage内的数据，所以在路由守卫清空数据后添加useCar().$reset()清空所有状态即可。注意不要在退出登陆方法中写入此代码，会失效。其实也只是看上去没有效果，此行代码一定生效了，只不过在清空数据时sessionStorage还有数据，这就导致初始化默认为当前的值了见如下代码：
+
+```ts
+tabRoutes: JSON.parse(String(sessionStorage.getItem('tabRoutes'))) || [] as Array<any>
+```
+
+由于sessionStorage中还存在数据，初始化时默认取了它里面的数据，而在路由守卫清除sessionStorage后再调用此行代码即为空数组了
+
+## 优化思想
+
+今天在测试项目的时候，又发现本部分代码可以更加优化。就是在导航栏切换时我们控制了一次pinia来改变sessionStorage，在tabs切换时又控制了一次，刚才书写退出登录里面可以进入个人中心，因为如此，又要书写一边，但这次我犹豫了，感觉哪里不对。为什么不可以将修改写在路由守卫中，这样在每次路由切换时执行此逻辑，在各自的页面就不用再分别控制pinia了。整理后代码如下
+
+- 导航栏部分代码
+
+  ```ts
+  import { useCar } from '../../store/index'
+  import { storeToRefs } from 'pinia'
+  let props = defineProps(['navData'])
+  
+  let store = useCar();
+  const { routePath } = storeToRefs(store)
+  let treeNode = routePath
+  ```
+
+  已经删除了切换导航栏做的控制pinia逻辑
+
+- tabs部分代码
+
+  ```ts
+  // 点击tabs时切换路由
+  function handleTab(e:any) {
+      if(e.props.name !== routePath) {
+          router.push(e.props.name)
+      }
+  }
+  // 删除tab键做的一些操作
+  function removeTab(targetName: any) {
+      let nowRoute = route.fullPath
+      if(nowRoute === targetName) {
+          store.tabRoutes.forEach((item:any, index:number) => {
+              if(item.name === targetName) {
+                  if(index === store.tabRoutes.length - 1) {
+                      store.deleteTabRoutes(index)
+                      let name = store.tabRoutes[store.tabRoutes.length - 1].name
+                      router.push(name)
+                  } else {
+                      store.deleteTabRoutes(index)
+                      let name = store.tabRoutes[index].name
+                      router.push(name)
+                  }
+              }
+          });
+      } else {
+          store.tabRoutes.forEach((item: any, index: number) => {
+              if (item.name === targetName) {
+                  store.deleteTabRoutes(index);
+              }
+          });
+      }
+  }
+  ```
+
+  已经这里仅存的控制pinia的代码是为了在关闭tab键时要更新对应的sessionStorage，整体控制部分已经转移到了路由守卫
+
+- 退出登录逻辑部分代码
+
+  ```ts
+  import { useRouter } from "vue-router";
+  let router = useRouter()
+  function quit() {
+      router.push('/login');
+  }
+  function personCenter() {
+      router.push('/personCenter')
+  }
+  ```
+
+  只需要执行最简单的跳转即可，剩下的代码就在路由守卫中执行了
+
+- 路由守卫部分代码
+
+  ```ts
+  router.beforeEach((to, from, next) => {
+      if(to.name === 'Login') {
+          if(sessionStorage.getItem('routePath')) {
+              sessionStorage.removeItem('routePath')
+          }
+          if (sessionStorage.getItem('tabRoutes')) {
+              sessionStorage.removeItem('tabRoutes')
+          }        
+          useCar().$reset()
+          next()
+      } else if (to.name !== 'Login') {
+          if (!sessionStorage.getItem('tabRoutes')) {
+              useCar().addTabRoutes({
+                  name: to.fullPath,
+                  title: to.meta.name,
+                  icon: to.meta.icon
+              })
+          }else {
+              let handleRoutes = JSON.parse(String(sessionStorage.getItem('tabRoutes')))
+              let result = handleRoutes.some((item: any) => to.fullPath === item.name);
+              if (!result) {
+                  useCar().addTabRoutes({
+                      name: to.fullPath,
+                      title: to.meta.name,
+                      icon: to.meta.icon
+                  })
+              }
+          }
+          if(to.name !== useCar().routePath) {
+              useCar().handleRoutePath(to.fullPath)
+          }
+          next();
+      }
+  })
+  ```
+
+
+
+这样整理过后代码真的是变得非常的简便，不再像之前一样冗余了，很开心现在具有了一部分封装的思想，这样写出来的代码才不算所谓的"屎山"
+
