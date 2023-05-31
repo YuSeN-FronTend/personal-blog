@@ -1,5 +1,5 @@
 ---
-title: vue3学习
+title: vue3项目练习
 date: 2023-5-13 18:55
 categories: vue
 ---
@@ -618,3 +618,223 @@ tabRoutes: JSON.parse(String(sessionStorage.getItem('tabRoutes'))) || [] as Arra
 
 这样整理过后代码真的是变得非常的简便，不再像之前一样冗余了，很开心现在具有了一部分封装的思想，这样写出来的代码才不算所谓的"屎山"
 
+# 前端配置跨域
+
+在vite.config.ts添加如下代码
+
+```ts
+server: {
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:7001/',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, "")
+      }
+    }
+  }
+```
+
+如此配置即可完成跨域，当然更多情况是在后端完成跨域配置
+
+# 加入登录token后路由守卫的完善
+
+需要考虑以下几种情况：
+
+- 如果跳转路由不在配置好的路由路径中，直接回到登录页面
+- 如果不存在token，无法再回到管理系统页面
+- 如果存在token则进入到管理系统，直接跳转管理页面任意路由均可，跳转到不存在的路由则返回登陆页面
+- 以任何方式返回登录页面，不输入账号密码的情况下均无法回到管理页面
+
+具体代码如下：
+
+```ts
+const route: any = [];
+router.beforeEach((to, from, next) => {
+    useRouter().getRoutes().forEach((item: any) => {
+        if (item.children.length === 0 && !item.redirect) {
+            route.push(item.path)
+        }
+    })
+    if (!route.some((item: any) => to.fullPath === item)){        
+        next('/login')
+    } else {
+        if (to.name === 'Login') {
+            if (sessionStorage.getItem('routePath')) {
+                sessionStorage.removeItem('routePath')
+            }
+            if (sessionStorage.getItem('tabRoutes')) {
+                sessionStorage.removeItem('tabRoutes')
+            }
+            useCar().$reset()
+            sessionStorage.removeItem('userInfo')
+            next()
+        } else if (from.name === 'Login' || from.path === '/') {
+            if (JSON.parse(String(sessionStorage.getItem('userInfo')))?.token) {
+                if (!sessionStorage.getItem('tabRoutes')) {
+                    useCar().addTabRoutes({
+                        name: to.fullPath,
+                        title: to.meta.name,
+                        icon: to.meta.icon
+                    })
+                }
+                if (to.name !== useCar().routePath) {
+                    useCar().handleRoutePath(to.fullPath)
+                }
+                next()
+            } else {
+                next('/login')
+            }
+        } else {
+            let handleRoutes = JSON.parse(String(sessionStorage.getItem('tabRoutes')))
+            let result = handleRoutes.some((item: any) => to.fullPath === item.name);
+            if (!result) {
+                useCar().addTabRoutes({
+                    name: to.fullPath,
+                    title: to.meta.name,
+                    icon: to.meta.icon
+                })
+            }
+            // tabs键高亮不跟随显示问题
+            if (to.name !== useCar().routePath) {
+                useCar().handleRoutePath(to.fullPath)
+            }
+            next();
+        }
+    }
+})
+```
+
+# 回车触发登录按钮功能
+
+需要在页面初始化完成后的mounted钩子中监听一个鼠标按键函数，当鼠标按下键为Enter(keyCode=13)时，触发登录函数，但要在页面关闭后销毁此监听事件，不然可能会污染别的组件，具体代码如下：
+
+```ts
+//实现回车登录
+function onSubmit(e:any) {
+  if(e.keyCode === 13 && isLogin.value === true) {
+    login()
+  }
+}
+// 监听触发函数
+onMounted(() => {
+  window.addEventListener('keyup', onSubmit, false);
+})
+// 离开页面时销毁此操作
+onUnmounted(() => {
+  window.removeEventListener('keyup', onSubmit, false)
+})
+```
+
+# 请求拦截器与响应拦截器
+
+由于只是测试，所以功能比较简单，只有接口token鉴权功能，没有权限。但是即便简单，也走了一个大坑，如果在请求接口是报`Format is Authorization: Bearer [token]`这个错误，就是需要在token之前加上`Bearer `(注意这个字符串和token之间必须要有一个空格，否则无效)，还可能出现ts的报错，不要相信网上的搜查结果，优先检查箭头函数是否有返回值，这个报错的几率更大。主要的逻辑还都在后端完成以下为详细代码：
+
+```ts
+import axios from 'axios'
+const request = axios.create({
+    baseURL: 'http://127.0.0.1:7001',
+    timeout: 5000
+})
+request.interceptors.request.use(
+    (config) => {
+        let token = JSON.parse(String(sessionStorage.getItem('userInfo')))?.token;
+        if(token) {
+            config.headers['authorization'] = `Bearer ${token}`
+        }
+        return config
+    },
+    (error) => {
+        console.log(error);
+        Promise.reject(error)
+    }
+)
+request.interceptors.response.use(
+    (response) => {
+        const res = response.data;
+        if (res) {
+            console.log(res);
+            // 这个是后台自定义的code哦，不是http里的状态码哦
+            if (res.code !== 200) {
+                // 在这里处理异常，如res.code===50008 token失效重置token等等
+                
+                
+            }
+            return response
+        } else {
+            return Promise.reject("error");
+        }
+    },
+    (error) => {
+        // 接口返回数据异常信息
+        console.log(error);
+        
+    }
+)
+export default request;
+```
+
+# 动态路由的实现
+
+vue3和vue2中实现动态路由出现了很大的区别，因为没有了addRoutes，只剩下了addRoute，需要单独去添加书写。所以需要写一个递归遍历后端传过来的结构在前端进行渲染，但是在网上搜了很多的资料，大多数都是混淆的。踩坑如下：
+
+- **addRoute直接添加子路由**
+
+  这个我试过很多次，有说第一个参数父路由的name后面串子路由的路由属性就可以向父路由中添加子路由，不知道能不能实现，反正我试了很多次，也试了很多种方法，都没有实现
+
+- **在路由守卫中调用计算属性操作，动态添加404页面解决刷新白屏问题**
+
+  这个我试了以下，但是不知道为什么路由守卫中的打印是在跳转路由之后的，这个挺匪夷所思的
+
+- **将数据保存到状态管理库中(pinia)**
+
+  可以实现，但是个人认为优点多余，因为即便是使用pinia控制，刷新还是会丢失数据，最后还是使用sessionStorage，但这里不推荐使用localStorage，还需手动删除
+
+其实还有很多琐碎的问题，但由于已经写了两天了，所以有点忘了，上面三大点的具体实现如下
+
+- 先将传过来的数据转换成路由识别的格式，再添加到路由中即可
+
+  ```ts
+  export function generateRoutesFromMenu(menu:any) {
+      if (!menu || !menu.length) {
+          return;
+      }
+      let newRouters;
+      newRouters = menu.map((item:any) => {
+          let paths = loadComponent(item?.component);
+          let rts = {
+              name: item.name,
+              path: item.path,
+              redirect: item?.redirect,
+              meta: item?.meta,
+              component: paths,
+              children: []
+          }
+          if (item.children && item.children.length) {
+              rts.children = generateRoutesFromMenu(item.children)
+          }
+          return rts;
+      })
+      return newRouters
+  }
+  function loadComponent(url: string) {
+      let Module = import.meta.glob("../view/**/*.vue")
+      let path = Module[`../view/${url}.vue`];
+      return path;
+  }
+  ```
+
+  上面就是一个简单的递归，不难理解。底下的函数负责找到component的路径
+
+- 我在登录页面调用一次，在main.ts中调用一次
+
+  在登陆页面调用是因为在登录页面多次刷新可能会导致数据丢失，因为跳转路由的时候不会执行main.ts中的函数。放在main.ts中就可以解决刷新白屏问题
+
+- 数据存放
+
+  数据存放到sessionStorage，退出登陆的时候直接销毁即可
+
+困扰了两天的问题终于解决，心中也轻松不少。但是没想到两天的问题竟然才这么少，真的是因为以前对这个东西不了解，在网上搜到的东西大多数都是没法用的，以后完成需求时可以看网上的思路，但实现还要自己趟，不然毫无意义。
+
+# 权限的添加
+
+数据库设置一个管理员账号，然后注册的账号默认为用户，结合动态路由添加不一样的路由完成权限的配置，管理员可以看到所有的页面，用户可以看到部分页面，只需要识别一下用户的角色即可。重点还是在于动态路由的添加，由于后端也是咱们自己控制，所以可以传过来一个最舒服的格式，这样就可以将前端的代码难度降到最低。
