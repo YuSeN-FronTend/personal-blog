@@ -160,3 +160,37 @@ addEventListener(type, listener, options || useCapture);
   - passive：布尔值，表示listener永远不会调用`preventDefault()`
   - signal:可选，`AbortSignal`，当他的`about()`方法被调用时，监听器会被移除
 - useCapture：布尔值，默认为false，listener在时间冒泡阶段结束时执行，true则表示在捕获阶段开始时执行。作用就是更在事件作用的时机，方便拦截/不被拦截
+
+# 10、判断数据类型的方法
+
+## typeof
+
+typeof可以检测一些基本数据类型，但是正则表达式、{}、[]、null都为object
+
+## A instanceof B
+
+检测当前实例是否隶属于某类，返回值为布尔值，但如果判断数据是否属于对象，也会返回true，因为数组是特殊形式的对象
+
+### 以上两者的区别
+
+- typeof判断的是变量的类型
+- typeof对于丰富的对象实例，只能返回object的字符串
+- instanceof是用来检测A是否是B的实例，也就是在B的原型链上查找A，也可以用来做类型检验，但不是最好的方案
+
+## Object.prototype.toString.call()
+
+这是最好的数据类型检测方法，所有类的原型上都有一个toString方法，这个操作可以识别所有类型
+
+# 11、箭头函数和普通函数的区别
+
+- 外形不同
+- 箭头函数为匿名函数
+- 箭头函数不可以用于构造函数，也就是不能使用new
+- 箭头函数中的this指向不同
+- 箭头函数中的this一旦确定就不会改变
+- 箭头函数不能使用生成器函数，也就是不能使用yeild关键字
+- 箭头函数不具有prototype原型对象
+- 箭头函数不具有super
+- 箭头函数不具有new.target
+
+注：call()、bind()、apply()这些改变this指向的方法，不能改变箭头函数中的this。普通函数的this指向调用它的哪个对象。

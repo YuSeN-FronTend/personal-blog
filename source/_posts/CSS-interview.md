@@ -144,4 +144,53 @@ h1::first-line{
       }
   ```
 
-  
+
+## flex布局的常用属性
+
+- flex-direction
+
+  - row: 默认值，从左到右
+  - column：从上到下
+  - row-reverse：从右到左
+  - column-reverse：从下到上
+
+  改变弹性盒子中元素的横向纵向排列
+
+- flex-wrap
+
+  - nowrap：不换行
+  - wrap：换行，空间不足，就向下另起一行
+  - wrap-reverse：换行，与wrap不同的是，这个是向当前行的上面另起一行
+
+- justify-content 和 align-items
+
+  这两个不过多赘述，因为它们是给一个盒子居中最常用的手段
+
+- align-content
+
+  当有多排的时候的对齐方法，很少用到
+
+注：**flex: 1;的含义是什么？**
+
+从浏览器上看，flex: 1;等同于 flex: 1 1 0;等同于：
+
+```css
+flex-grow: 1;
+flex-shrink: 1;
+flex-basis: 0px;
+```
+
+- flex-grow
+
+  定义项目的放大比例，默认为零，如果存在剩余空间也不放大
+
+- flex-shrink
+
+  定义项目的缩小比例，默认为1，则如果空间不足，该项目则缩小
+
+- flex-basis
+
+  给上面两个属性分配多余空间之前，计算项目是否有多余空间，默认为auto，即项目本身的大小
+
+所以只有将flex-basis属性设置为auto时，才会出现盒子内文字越多，盒子宽度越大的情况，只要是任意数字加上单位，就会均分设定的几块区域
+
