@@ -124,3 +124,153 @@ OK请求成功，一般用于GET与POST请求
 
 服务器内部错误，无法完成请求。
 
+# 五、HTTP各版本的分述
+
+## 1.HTTP/0.9
+
+HTTP是基于TCP/IP协议的应用层协议。它不涉及数据包的传输，主要规定了客户端和服务器之间的通信格式，默认使用80端口。
+
+最早版本是1991年发布的0.9版本。该版本简单到只有一个命令`GET`
+
+```http
+GET/index.html
+```
+
+上面的命令表示，TCP连接建立后，客户端向服务器请求一个网页`index.html`。
+
+协议规定，服务器只能回应HTML格式的字符串，不能回应别的格式，距离代码如下：
+
+```html
+<html>
+	<body>Hello World</body>
+</html>
+```
+
+服务器发送完毕，就会关闭TCP连接
+
+## 2.HTTP/1.0
+
+### 2.1简介
+
+1996年5月，HTTP/1.0发布，内容大大增加。
+
+首先，任何格式的内容都可以发送。这使得互联网不仅可以传输数字，还能传输图像、视频、二进制文件。这位互联网的发展奠定了基础。
+
+其次，除了`GET`命令，还引入了`POST`和`HEAD`命令，丰富了浏览器与服务器交互的手段。
+
+再次，HTTP请求和回应的格式也变了。除了数据部分，每次通信都必须包括头信息(HTTP header)，用来描述一些元数据。其他新增的功能还包括状态码(status code)、多字符集的支持，多部分发送、权限、缓存、内容编码等。
+
+### 2.2请求格式
+
+下面是一个1.0版的HTTP请求的例子
+
+```http
+GET/HTTP/1.0
+User-Agent: Mozilla/5.0（Macintosh; Intel Mac OS X 10_10_5)
+Accept: */*
+```
+
+可以看到此时的格式和0.9版已经有很大的变化了。第一行是请求命令，必须在尾部添加协议版本(HTTP/1.0)。后面就是多行头信息，描述客户端的情况。
+
+### 2.3回应格式
+
+服务器的回应如下
+
+```http
+HTTP/1.0 200 OK 
+Content-Type: text/plain
+Content-Length: 137582
+Expires: Thu, 05 Dec 1997 16:00:00 GMT
+Last-Modified: Wed, 5 August 1996 15:55:28 GMT
+Server: Apache 0.84
+
+<html>
+  <body>Hello World</body>
+</html>
+```
+
+回应的格式是"头信息+一个空行(\r\n)+数据"。其中，第一行是"协议版本+状态码(status code)+状态描述"
+
+### 2.4Content-Type字段
+
+关于字符的编码，1.0版规定，头信息必须是ASCII码，后面的数据可以是任意格式。因此，服务器回应的时候。必须告诉客户端数据是什么格式，这就是`Content-Type`字段的作用。
+
+下面是常见的一些`Content-Type`字段的值
+
+> - text/plain
+> - text/html
+> - text/css
+> - image/jpeg
+> - image/png
+> - image/svg+xml
+> - audio/mp4
+> - video/mp4
+> - application/javascript
+> - application/pdf
+> - application/zip
+> - application/atom+xml
+
+这些数据类型总称为`MIME type`，每个值包括一级类型和二级类型，之间用斜杠分隔。
+
+除了预定义类型，厂商也可以自定义类型。
+
+```http
+application/vnd.debian.binary-package
+```
+
+上面的类型表明，发送的是Debian系统的二进制数据包。
+
+`MIME type`还可以在尾部使用分号，添加参数。
+
+```http
+Content-Type: text/html; charset=utf-8
+```
+
+上面的类型表明，发送的是网页，并且编码是UTF-8。
+
+客户端请求的时候，可以使用`Accept`字段声明自己可以接受哪些数据格式。
+
+```http
+Accept: */*
+```
+
+上面代码中，客户端声明自己可以接受任何格式的数据。
+
+`MIME type`不仅用在HTTP协议，还可以用在其他地方，比如HTML网页
+
+```html
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!-- 等同于 -->
+<meta charset="utf-8" /> 
+```
+
+### 2.5Content-Encoding字段
+
+由于发送的数据可以是任意格式，因此可以把数据压缩之后再发送。`Content-Encoding`字段说明数据的压缩方法。
+
+```http
+HTTP/1.0 200 OK
+Content-Encoding: gzip
+Content-Encoding: compress
+Content-Encoding: deflate
+```
+
+客户端在请求时，用`Accept-Encoding`字段说明自己可以接收哪些压缩方法
+
+```http
+
+Accept-Encoding: gzip,deflate
+```
+
+### 2.6缺点
+
+HTTP/1.0版的主要缺点是，每个TCP连接只能发送一个请求。发送数据完毕，连接就关闭，如果还要请求其他资源，就必须再新建一个连接。TCP连接的新建成本很高，因为需要客户端和服务器的三次握手，并且开始时发挥速率较慢。所以HTTP/1.0版本的性能比较差。随着网页加载的外部资源越来越多，这个问题就愈发突出了。
+
+为了解决这个问题，有些浏览器在请求时用了一个非标准的`Connection`字段
+
+```http
+
+Connection：keep-alive
+```
+
+这个字段要求服务器不要关闭TCP连接，以便其他请求服用，服务器同样回应这个字段。一个可以复用的TCP连接就建立了，直到客户端或者服务器主动关闭连接。但是这不是标准字段，不同实现的行为可能不一致，因此不是根本的解决办法。
