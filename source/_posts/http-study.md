@@ -414,4 +414,9 @@ HTTP/2允许服务器未经请求，主动向客户端发送资源，这叫服�
 ## 相比之下HTTP/2的缺点
 
 - HTTP/2 Server Push 不能被代码使用，所以还得配合SSE(Server sent event)，这样的混搭无疑增加了复杂度。
+- IE对http2以及SSE多支持的不好
+- HTTP/2连接不确定性会永远保持连接，为websocket有onclose事件，对代码友好
+- 多个tab页window页可能共用一个HTTP/2连接，无法确定Server Push来自哪一个
+- 由于多路复用，以前基于HTTP/1.1的网站提速技巧Domain sharding(由于浏览器限制同一域名最多连接数)将不再起作用
 
+综合来看，HTTP/2在服务器上限制颇多，而websocket基本普及，并且再SEE的支持程度上仍然不如websocket
