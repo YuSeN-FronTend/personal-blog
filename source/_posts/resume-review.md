@@ -436,3 +436,48 @@ node.js是一个跨平台的js运行环境，使开发者可以搭建服务器�
 - Debug不方便
 
 node.js几乎可以实现我们想要实现的任何应用，但要从多方面考虑它是否真的适合。
+
+# ES6起个版本的新特性
+
+## ES6(ES2015)
+
+- class
+- 模块化：导入export、导出import
+- 箭头函数：this指向定义时所在的对象，而不是使用时所值的对象
+- 函数参数默认值：function app(age=25) {...}
+- 模板字符串
+- 解构赋值：let [a,b] = [2,3] // a:2 b:3
+- 扩展运算符：...
+- 对象属性简写：{name:name} ===> {name}
+- promise对象
+- let, const
+
+## ES7(ES2016)
+
+- 新增数组的includes属性，检测数组中是否存在与传入参数一样的值
+- 引入了(**)指数操作符
+
+## ES8(ES2017)
+
+- 新增async await使得异步改同步称为可能，避免代码书写的来回嵌套
+- 新增`Object.values()`获取对象中所有的value值
+- 新增`Object.entries()`将键值对包在一个数组里面再全部放在一个大数组中
+- 新增字符串填充(padStart，padEnd)
+- 允许函数参数列表结尾存在逗号
+- 添加Object.getOwnPropertyDescriptors():获取一个对象的所有自身属性的描述符，如果没有任何自身属性，则返回空对象
+- 新增ShareArrayBuffer对象：用来表示一个通用的，固定长度的原始二进制数据缓冲区
+- 新增Atomics对象：提供了一组静态方法用来对SharedArrayBuffer对象进行原子操作
+
+## ES9(ES2018)
+
+- 允许异步迭代：await可以和for...of循环一起使用，已串行的方式运行异步操作
+- 新增Promise.finally()
+- 修改了正则表达式的一些属性
+
+## ES10(ES2019)
+
+- 新增数组flat()和flatMap()方法，用于摊平数组
+- 修改了try catch的使用
+- 增加字符串的trimStart， trimEnd方法，分别去掉首尾空格
+- 增加Object.fromEntries方法，可以把对应数组转成对象
+
