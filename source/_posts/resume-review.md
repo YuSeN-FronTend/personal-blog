@@ -460,12 +460,47 @@ node.js几乎可以实现我们想要实现的任何应用，但要从多方面�
 ## ES8(ES2017)
 
 - 新增async await使得异步改同步称为可能，避免代码书写的来回嵌套
+
 - 新增`Object.values()`获取对象中所有的value值
+
 - 新增`Object.entries()`将键值对包在一个数组里面再全部放在一个大数组中
+
+  ```js
+  let obj = {
+      name: 'zj',
+      age: 20
+  }
+  console.log(Object.entries(obj)); //[ [ 'name', 'zj' ], [ 'age', 20 ] ]
+  ```
+
 - 新增字符串填充(padStart，padEnd)
+
+  ```js
+  let str = '123';
+  
+  console.log('start' + str.padStart(10)); //start       123
+  console.log(str.padEnd(10) + 'end');   //123       end
+  ```
+
 - 允许函数参数列表结尾存在逗号
+
 - 添加Object.getOwnPropertyDescriptors():获取一个对象的所有自身属性的描述符，如果没有任何自身属性，则返回空对象
+
+  ```js
+  let obj = {
+      name: 'zj',
+      age: 20
+  }
+  
+  console.log(Object.getOwnPropertyDescriptors(obj));
+  //{
+  //  name: { value: 'zj', writable: true, enumerable: true, configurable: true },
+  //  age: { value: 20, writable: true, enumerable: true, configurable: true }
+  //}
+  ```
+
 - 新增ShareArrayBuffer对象：用来表示一个通用的，固定长度的原始二进制数据缓冲区
+
 - 新增Atomics对象：提供了一组静态方法用来对SharedArrayBuffer对象进行原子操作
 
 ## ES9(ES2018)
@@ -477,7 +512,109 @@ node.js几乎可以实现我们想要实现的任何应用，但要从多方面�
 ## ES10(ES2019)
 
 - 新增数组flat()和flatMap()方法，用于摊平数组
-- 修改了try catch的使用
+
+  ```js
+  let a = [1,[2,[3,[4,[5]]]]]
+  console.log(a.flat());// [ 1, 2, [ 3, [ 4, [Array] ] ] ]
+  console.log(a.flat(Infinity)); // [ 1, 2, 3, 4, 5 ]
+  
+  let aMap = [1,2,3,4];
+  console.log(aMap.flatMap((a) => a *= 2)); // [ 2, 4, 6, 8 ]
+  ```
+
+- 修改了try catch的使用，catch不必再由入参
+
 - 增加字符串的trimStart， trimEnd方法，分别去掉首尾空格
+
 - 增加Object.fromEntries方法，可以把对应数组转成对象
+
+  ```js
+  let obj = {
+      name: 'zj',
+      age: 20
+  }
+  let changeObj = Object.entries(obj); // [ [ 'name', 'zj' ], [ 'age', 20 ] ]
+  console.log(Object.fromEntries(Object.entries(obj))); // { name: 'zj', age: 20 }
+  ```
+
+- 增加Function.prototype.toString()方便看到函数对应的内部代码
+
+  ```js
+  let i = 0;
+  function fun() {
+      return i++
+  }
+  console.log(Function.prototype.toString(fun)); // function () { [native code] }
+  ```
+
+- 增加Symbol.prototype.description方法
+
+- 对JSON对象的优化JSON.superset、JSON.stringify
+
+## ES11(ES2020)
+
+- 增加Bigint：用于大数计算
+- 增加可选链：简化书写操作
+- 增加`??`运算，如果左侧不为null或者undefined则返回`??`右侧内容
+- 解决了let num = number || 1这种计算方式的bug
+- 增加Promise.allSettled方法
+- 支持import()函数用于异步加载
+
+## ES12(ES2021)
+
+- 增加了字符串的replaceAll方法，之前要实现替换全部，需要使用正则表达式
+
+- 新增Promise.any方法，只要其中一个promise成功，就返回哪个promise
+
+- 使用WeakRefs的Class类创建对对象的弱引用(对对象的弱引用是指当该对象应该被GC回收时不会阻止GC的回收行为)
+
+- 新增了逻辑赋值操作符??=、&&=、||=
+
+  - ??=
+
+    指当左侧变量值为null或undefined时，右侧值赋值给左侧变量，并返回赋值后的值
+
+  - &&=
+
+    指的是逻辑与赋值，当左右条件都为真时，右侧值赋值给左侧变量
+
+  - ||=
+
+    指的是当左右条件都为假时，右侧值赋值给左侧变量
+
+- 增加下划线(_)分隔符，它是数字间隔性符，可以在数字之间创建分隔符，通过下划线来分割数字，使数字化可计算
+
+# 项目中遇到的难点
+
+- tabs键与路由联动
+
+  使用pinia和sessionStorage交互完成与路由的联动，为了节省代码，调用和删除操作在路由守卫中进行，并且确保在退出登录时，可以清空这俩个地方的状态，防止出现退出登录后还可以跳转页面的现象。由于有存储，刷新之后也不会丢失状态
+
+- 动态路由的实现
+
+  通过后端传递过来的数据，进行格式转换变成路由可以识别的格式，然后动态的添加路由。
+
+- 权限的实现
+
+  每次登录的用户，后端都会有一个角色识别，然后传递过来每个角色应有的路由结构
+
+- 动态路由的调用位置
+
+  调用登录接口之后，跳转之前需要调用一次，确保登录进到页面之后，可以看到渲染好的导航栏，并且可以实现路由跳转。在main.ts中也要调用一次，解决刷新之后页面跳转到404状态消失问题。
+
+- 信息窗体的封装
+
+  因为在可视化大屏中有很多样式相似的窗体，只需要封装一个窗体，然后各个窗口只需要传输不同的参数即可
+
+- 信息窗体echarts切换
+
+  在vuex状态库中保持状态，结合策略模式来对echarts进行封装，每次切换传入不同数据即可，避免一起加载导致缓存过大问题
+
+- 底部添加定时器
+
+  在底部添加定时器，在轮播的时候点击切换容易造成内容闪烁，结合防抖去解决这个问题
+
+- 插件的按需引入
+
+  由于可视化大屏是单页面，所以容易内存过大而导致页面崩溃，所以进行插件的按需引入并且基于webpack进行打包体积的控制，优化了页面的速度。
 
