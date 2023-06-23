@@ -759,5 +759,27 @@ npm install webpack-merge -D
   }
   ```
 
-  
+
+## loader和plugin的区别
+
+### loader
+
+loader只关注转化文件这一个领域，完成压缩、打包、语言翻译，**仅仅是为了打包**
+
+举例：
+
+- css-loader和style-loader模块是为了打包css
+- babel-loader和babel-core模块是为了把ES6代码转成ES5
+- url-loader和file-loader是把图片进行打包
+
+### plugin
+
+plugin也是为了扩展webpack的功能，但是plugin是作用在webpack本身上的，他才可以处理各种各样的任务，在优化中经常会用到
+
+### 运行时机角度区分
+
+- loader运行在打包文件之前
+- plugins在整个编译周期都起作用
+
+
 
