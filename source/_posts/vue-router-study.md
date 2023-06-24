@@ -93,9 +93,111 @@ categories: vue
 
 - vue监视current的监视者
 
+  ```js
+  Vue.mixin({
+          beforeCreate() {
+              if (this.$options.router) {
+                  Vue.prototype.$router = this.$options.router
+              }
+          },
+      })
   ```
+
+  虽然源码上不是这么写的，但这样也可以完美解决问题，把我们所需要的router值挂载到vue的原型上。
+
+- 获取到新的组件
+
+  ```js
+  Vue.component('router-view', {
+          render(h) {
+              let current = this.$router.current
+              let routes = this.$router.routes;
+              let router = routes.find((item) => item.path === current);
+              return h(router.component);
+          }
+      })
+  ```
+
+  这样就可以将首页展示出来了
+
+- 将组件切换变为响应式
+
+  ```js
+  constructor(options) {
+          this.mode = options.mode || '/';
+          this.routes = options.routes;
+          let initDate = window.location.hash.slice(1) || '/';
+          Vue.util.defineReactive(this, 'current', initDate)
+          // this.current = '/';
+          this.init();
+      }
+  ```
+
+  利用vue内置方法就可以切换为响应式
+
+- 全部代码
+
+  ```js
+  let Vue;
   
+  class VueRouter {
+      constructor(options) {
+          this.mode = options.mode || '/';
+          this.routes = options.routes;
+          let initDate = window.location.hash.slice(1) || '/';
+          Vue.util.defineReactive(this, 'current', initDate)
+          // this.current = '/';
+          this.init();
+      }
+      init() {
+          if(this.mode === 'hash') {
+              window.addEventListener('load',() => {
+                  this.current = location.hash.slice(1);
+              })
+              window.addEventListener('hashchange', () => {
+                  this.current = location.hash.slice(1);
+              })
+          }
+      }
+  }
+  
+  VueRouter.install = function(_vue) {
+      Vue = _vue;
+  
+      Vue.mixin({
+          beforeCreate() {
+              if (this.$options.router) {
+                  Vue.prototype.$router = this.$options.router
+              }
+          },
+      })
+      Vue.component('router-link', {
+          props: {
+              to: {
+                  type: String,
+                  require: true
+              }    
+          },
+          render(h) {
+              return h('a',{
+                  attrs: {
+                      href: '#' + this.to
+                  }
+              }, 'router-link');
+          }
+      })
+  
+      Vue.component('router-view', {
+          render(h) {
+              let current = this.$router.current
+              let routes = this.$router.routes;
+              let router = routes.find((item) => item.path === current);
+              return h(router.component);
+          }
+      })
+  }
+  
+  export default VueRouter;
   ```
 
   
-
